@@ -1,0 +1,39 @@
+{
+  "name": "playwright-cheatsheet",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "npm run data:index && next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "data:fetch": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/fetch-sources.ts",
+    "data:extract": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/extract-types.ts && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/extract-docs.ts",
+    "data:merge": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/merge.ts",
+    "data:pipeline": "npm run data:fetch && npm run data:extract && npm run data:merge",
+    "data:validate": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/validate-data.ts",
+    "data:typecheck": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/typecheck-samples.ts",
+    "data:index": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-search-index.ts",
+    "data:check": "npm run data:validate && npm run data:typecheck && npm run data:index && npm run search:check",
+    "search:check": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-search.ts",
+    "search:bench": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/benchmark-search.ts"
+  },
+  "dependencies": {
+    "next": "16.3.2",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
