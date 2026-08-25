@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+.cache
+test-results
+playwright-report
+package-lock.json
+next-env.d.ts
+
+# tài liệu viết tay — bảng đã căn thủ công, đừng để Prettier sắp lại
+implement.md
+guild.txt
