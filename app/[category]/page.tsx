@@ -70,7 +70,7 @@ export default async function TrangNhom(props: PageProps<"/[category]">) {
         </div>
       </header>
 
-      <ul className="flex flex-col gap-2">
+      <ul className="grid gap-2 lg:grid-cols-2 2xl:grid-cols-3">
         {danhSach.map((e) => (
           <EntryListItem key={e.id} entry={e} />
         ))}

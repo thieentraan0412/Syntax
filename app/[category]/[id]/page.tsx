@@ -44,7 +44,7 @@ export default async function TrangChiTiet(props: PageProps<"/[category]/[id]">)
   if (!entry) notFound();
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-3xl xl:max-w-4xl">
       <EntryCard entry={entry} />
     </div>
   );

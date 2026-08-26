@@ -86,7 +86,7 @@ export function SearchResults({
                   hit={hit}
                   field="title"
                   className={
-                    "font-mono text-[15px] font-medium " +
+                    "wrap-anywhere font-mono text-[15px] font-medium " +
                     (dangChon ? "text-accent" : "group-hover:text-accent")
                   }
                 />

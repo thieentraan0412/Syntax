@@ -59,31 +59,33 @@ export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> })
 
   return (
     <div className="flex flex-col gap-5">
-      <SearchBar
-        value={query}
-        onChange={(v) => {
-          setQuery(v);
-          nav.datLai();
-        }}
-        onWarmUp={warmUp}
-        onClear={clear}
-        onKeyDown={nav.onKeyDown}
-        autoFocus
-        dangTai={status === "loading"}
-      />
+      <div className="mx-auto w-full max-w-3xl">
+        <SearchBar
+          value={query}
+          onChange={(v) => {
+            setQuery(v);
+            nav.datLai();
+          }}
+          onWarmUp={warmUp}
+          onClear={clear}
+          onKeyDown={nav.onKeyDown}
+          autoFocus
+          dangTai={status === "loading"}
+        />
+      </div>
 
       {/* Chưa gõ gì: bày thứ người ta đã ghim / đã tìm, rồi tới 15 nhóm. */}
       {!daGo && (
         <>
           {ghim.length > 0 && (
-            <section className="flex flex-col gap-2">
+            <section className="mx-auto flex w-full max-w-3xl flex-col gap-2">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">Đã ghim</h2>
               <ul className="flex flex-wrap gap-1.5">
                 {ghim.map((m) => (
                   <li key={`${m.c}/${m.i}`}>
                     <Link
                       href={hrefGhim(m)}
-                      className="inline-block rounded-lg border border-border px-3 py-1.5 font-mono text-[13px] transition-colors hover:border-accent hover:text-accent"
+                      className="inline-block wrap-anywhere rounded-lg border border-border px-3 py-1.5 font-mono text-[13px] transition-colors hover:border-accent hover:text-accent"
                     >
                       ★ {m.t}
                     </Link>
@@ -94,7 +96,7 @@ export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> })
           )}
 
           {ganDay.length > 0 && (
-            <section className="flex flex-col gap-2">
+            <section className="mx-auto flex w-full max-w-3xl flex-col gap-2">
               <h2 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-muted">
                 Tìm gần đây
                 <button
@@ -129,14 +131,14 @@ export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> })
       )}
 
       {daGo && status === "error" && (
-        <p className="rounded-xl border border-border bg-surface px-4 py-3 text-sm text-muted">
+        <p className="mx-auto w-full max-w-3xl rounded-xl border border-border bg-surface px-4 py-3 text-sm text-muted">
           Không tải được dữ liệu tìm kiếm{error ? ` (${error.message})` : ""}. Bấm lại vào ô tìm
           kiếm để thử lần nữa.
         </p>
       )}
 
       {daGo && status !== "error" && (
-        <>
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
           <CategoryFilter
             countByCategory={countByCategory}
             tong={tong}
@@ -170,7 +172,7 @@ export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> })
               <Suggestions items={suggestions} />
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
@@ -178,7 +180,7 @@ export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> })
 
 function NhomGrid({ demTheoNhom }: { demTheoNhom: Record<string, number> }) {
   return (
-    <nav aria-label="Duyệt theo nhóm" className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <nav aria-label="Duyệt theo nhóm" className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {categoriesInOrder().map((c) => (
         <Link
           key={c.slug}

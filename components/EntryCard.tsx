@@ -93,7 +93,15 @@ export async function EntryCard({ entry }: { entry: CheatEntry }) {
           </span>
         </div>
 
-        <h1 className="font-mono text-2xl font-semibold tracking-tight sm:text-3xl">
+        {/*
+          `wrap-anywhere` chứ không phải `break-words`. Tiêu đề là định danh mono
+          không có khoảng trắng — `locatorAssertions.toHaveAccessibleDescription()`
+          là 47 ký tự, ~450px ở cỡ 24px. `break-words` chỉ cho phép xuống dòng
+          lúc VẼ mà không hạ min-content, nên ô lưới / flex bọc ngoài vẫn nở ra
+          theo chiều dài cả từ và đẩy nguyên TRANG trượt ngang trên điện thoại.
+          `overflow-wrap: anywhere` hạ luôn min-content, nên chỗ nào cũng co được.
+        */}
+        <h1 className="wrap-anywhere font-mono text-2xl font-semibold tracking-tight sm:text-3xl">
           {entry.title}
         </h1>
 
@@ -136,7 +144,7 @@ export async function EntryCard({ entry }: { entry: CheatEntry }) {
               <li key={`${r.category}/${r.id}`}>
                 <Link
                   href={hrefOf(r)}
-                  className="inline-block rounded-lg border border-border px-3 py-1.5 font-mono text-[13px] transition-colors hover:border-accent hover:text-accent"
+                  className="inline-block wrap-anywhere rounded-lg border border-border px-3 py-1.5 font-mono text-[13px] transition-colors hover:border-accent hover:text-accent"
                 >
                   {r.title}
                 </Link>
@@ -172,10 +180,10 @@ export function EntryListItem({ entry }: { entry: CheatEntry }) {
     <li>
       <Link
         href={hrefOf(entry)}
-        className="group flex flex-col gap-1.5 rounded-xl border border-border px-4 py-3 transition-colors hover:border-accent hover:bg-surface"
+        className="group flex h-full flex-col gap-1.5 rounded-xl border border-border px-4 py-3 transition-colors hover:border-accent hover:bg-surface"
       >
         <span className="flex flex-wrap items-center gap-2">
-          <code className="font-mono text-[15px] font-medium group-hover:text-accent">
+          <code className="wrap-anywhere font-mono text-[15px] font-medium group-hover:text-accent">
             {entry.title}
           </code>
           <SinceBadge since={entry.since} />

@@ -1,24 +1,21 @@
 "use client";
 
 /**
- * Phase 4 — chỗ duy nhất bắt phím tắt toàn trang.
+ * Chỗ DUY NHẤT bắt phím tắt toàn trang.
  *
  * Component này nằm ở layout gốc nên có mặt trên **mọi** trang, kể cả 322 trang
- * chi tiết SSG. Vì vậy nó phải thật nhẹ: chỉ có một listener bàn phím và một
- * chút state. Toàn bộ phần nặng — overlay tìm kiếm, `useSearch`, `fuse.js`,
- * `search-index.json` — nằm sau `next/dynamic`, chỉ tải khi người ta thật sự mở.
+ * chi tiết SSG. Vì vậy nó phải thật nhẹ: một listener bàn phím, một chút state,
+ * và không import gì thuộc tầng tìm kiếm.
  *
- * Đây là cách giữ lời hứa "trang chi tiết không trả tiền cho tìm kiếm" của mục
- * 3.1 trong khi vẫn làm được mục "search overlay gọi từ mọi trang" của Phase 4.
+ * Tìm kiếm giờ nằm thẳng ở ô trên header (`HeaderSearch`) chứ không còn là hộp
+ * thoại, nên việc của `/` và `Ctrl+K` chỉ là đưa con trỏ về đúng ô đang có mặt:
+ * ô lớn giữa trang chủ nếu đang ở trang chủ, còn lại là ô ở header.
  */
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { ID_O_TIM_KIEM, ID_O_TIM_KIEM_HEADER } from "../lib/su-kien.ts";
 
-const SearchOverlay = dynamic(() => import("./SearchOverlay.tsx"), { ssr: false });
 const ShortcutHelp = dynamic(() => import("./ShortcutHelp.tsx"), { ssr: false });
-
-type Hop = "none" | "search" | "help";
 
 /** Đang gõ trong ô nhập thì phím tắt một ký tự phải nhường chỗ. */
 function dangGoChu(t: EventTarget | null): boolean {
@@ -28,44 +25,42 @@ function dangGoChu(t: EventTarget | null): boolean {
   return /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
 }
 
+/** Ô lớn của trang chủ được ưu tiên; trang nào không có nó thì dùng ô ở header. */
+function veOTimKiem() {
+  const el =
+    document.getElementById(ID_O_TIM_KIEM) ?? document.getElementById(ID_O_TIM_KIEM_HEADER);
+  if (!(el instanceof HTMLInputElement)) return;
+  el.focus();
+  el.select();
+}
+
 export function SearchTrigger() {
-  const [hop, setHop] = useState<Hop>("none");
-  const duongDan = usePathname();
+  const [moHelp, setMoHelp] = useState(false);
 
-  // Trang chủ đã có ô search to đùng ngay giữa màn hình; mở thêm overlay đè lên
-  // nó là thừa. Ở đó `/` và Ctrl+K do SearchBar lo.
-  const laTrangChu = duongDan === "/";
-
-  const dong = useCallback(() => setHop("none"), []);
+  const dong = useCallback(() => setMoHelp(false), []);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const ctrlK = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k";
-
-      if (ctrlK && !laTrangChu) {
+      if (ctrlK) {
         e.preventDefault();
-        setHop("search");
+        veOTimKiem();
         return;
       }
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (dangGoChu(e.target)) return;
 
-      if (e.key === "/" && !laTrangChu) {
+      if (e.key === "/") {
         e.preventDefault();
-        setHop("search");
+        veOTimKiem();
       } else if (e.key === "?") {
         e.preventDefault();
-        setHop("help");
+        setMoHelp(true);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [laTrangChu]);
+  }, []);
 
-  return (
-    <>
-      {hop === "search" && <SearchOverlay onDong={dong} />}
-      {hop === "help" && <ShortcutHelp onDong={dong} />}
-    </>
-  );
+  return moHelp ? <ShortcutHelp onDong={dong} /> : null;
 }

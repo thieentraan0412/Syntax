@@ -4,6 +4,7 @@ import Link from "next/link";
 import "./globals.css";
 import { ThemeToggle } from "../components/ThemeToggle.tsx";
 import { SearchTrigger } from "../components/SearchTrigger.tsx";
+import { HeaderSearch } from "../components/HeaderSearch.tsx";
 import { entries, meta } from "../data/index.ts";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin", "vietnamese"] });
@@ -44,30 +45,28 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SearchTrigger />
 
         <header className="sticky top-0 z-10 border-b border-border bg-bg/85 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
-            <Link href="/" className="flex items-baseline gap-2 font-semibold tracking-tight">
+          <div className="mx-auto flex w-full max-w-6xl 2xl:max-w-[84rem] items-center gap-3 px-4 py-3 sm:gap-6">
+            <Link
+              href="/"
+              className="flex shrink-0 items-baseline gap-2 font-semibold tracking-tight"
+            >
               <span className="text-accent">Playwright</span>
-              <span className="text-muted">Cheatsheet</span>
+              <span className="hidden text-muted sm:inline">Cheatsheet</span>
             </Link>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/"
-                className="flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:border-accent hover:text-accent"
-              >
-                Tìm kiếm
-                <kbd className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[11px]">
-                  /
-                </kbd>
-              </Link>
-              <ThemeToggle />
+
+            {/* Ô search chiếm phần giữa và co giãn — nó là việc chính của trang này. */}
+            <div className="flex flex-1 justify-center">
+              <HeaderSearch />
             </div>
+
+            <ThemeToggle />
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
+        <main className="mx-auto w-full max-w-6xl 2xl:max-w-[84rem] flex-1 px-4 py-8">{children}</main>
 
         <footer className="border-t border-border">
-          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-5 text-sm text-muted">
+          <div className="mx-auto flex w-full max-w-6xl 2xl:max-w-[84rem] flex-wrap items-center justify-between gap-2 px-4 py-5 text-sm text-muted">
             <span>
               {entries.length} cú pháp · dữ liệu trích từ{" "}
               <code className="font-mono">{meta.generatedFrom}</code>

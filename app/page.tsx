@@ -10,8 +10,8 @@ import { Search } from "../components/Search.tsx";
 
 export default function TrangChu() {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-7">
-      <section className="flex flex-col gap-2">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-7 xl:max-w-5xl 2xl:max-w-6xl">
+      <section className="mx-auto flex w-full max-w-3xl flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
           Tra cứu cú pháp Playwright
         </h1>

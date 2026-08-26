@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(git diff --stat --ignore-cr-at-eol)"
+    ]
+  }
+}

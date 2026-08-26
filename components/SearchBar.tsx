@@ -3,15 +3,19 @@
 /**
  * Phase 3 — ô search.
  *
- * Hai điểm đáng nói:
+ * Ba điểm đáng nói:
  *
  * 1. `onFocus` gọi `warmUp()` — đây chính là lúc tải `search-index.json`. Người
  *    vào trang chi tiết từ Google không bao giờ chạm vào ô này, nên không phải
  *    tải 19 KB họ không dùng.
  * 2. `type="search"` chứ không phải `text`: trình duyệt cho sẵn nút xoá, và
  *    trình đọc màn hình đọc đúng vai trò của ô.
+ * 3. Không tự bắt phím tắt: `/` và `Ctrl+K` do `SearchTrigger` ở layout gốc
+ *    bắt rồi đưa con trỏ về đây qua `id`. Hai chỗ cùng nghe một phím là hai
+ *    chỗ phải cùng đúng.
  */
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import { ID_O_TIM_KIEM } from "../lib/su-kien.ts";
 
 export function SearchBar({
   value,
@@ -33,30 +37,11 @@ export function SearchBar({
 }) {
   const ref = useRef<HTMLInputElement>(null);
 
-  // Phím tắt "/" và Ctrl+K — thói quen của người hay đọc docs. Ở trang chủ hai
-  // phím này KHÔNG mở overlay (SearchTrigger đã nhường) mà đưa con trỏ về ô
-  // search ngay giữa màn hình: mở một hộp nổi đè lên chính ô đang trống là thừa.
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      const ctrlK = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k";
-      if (!ctrlK) {
-        if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
-        const t = e.target as HTMLElement | null;
-        if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
-        if (t?.isContentEditable) return;
-      }
-      e.preventDefault();
-      ref.current?.focus();
-      ref.current?.select();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
   return (
     <div className="relative">
       <input
         ref={ref}
+        id={ID_O_TIM_KIEM}
         type="search"
         value={value}
         // Trang chủ chỉ có đúng một việc là tìm, nên để con trỏ sẵn ở đây là
