@@ -9,7 +9,7 @@
  * Node thuần (scripts/benchmark-search.ts).
  */
 import Fuse, { type IFuseOptions, type FuseResult, type FuseResultMatch } from "fuse.js";
-import type { SearchIndex, SearchIndexEntry, Category } from "./types.ts";
+import { hrefOf, type SearchIndex, type SearchIndexEntry, type Category } from "./types.ts";
 
 /**
  * Trọng số theo mục 8 kế hoạch. Ý đồ: người ta gõ TÊN HÀM là chính
@@ -56,9 +56,9 @@ export type SearchHit = {
   href: string;
 };
 
-export function hrefOf(entry: Pick<SearchIndexEntry, "category" | "id">): string {
-  return `/${entry.category}/${entry.id}/`;
-}
+// hrefOf sống ở lib/types.ts (không phụ thuộc Fuse). Re-export để chỗ gọi cũ
+// và scripts/check-search.ts không phải đổi import.
+export { hrefOf };
 
 /** Bọc Fuse lại để chỗ gọi không phải biết Fuse, và để thay engine sau này dễ. */
 export class SearchEngine {

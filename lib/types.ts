@@ -115,6 +115,19 @@ export function isCategory(slug: string): slug is Category {
 }
 
 /** Một tham số của hàm/lệnh. */
+/**
+ * URL trang chi tiết của một entry.
+ *
+ * Có trailing slash cho khớp `trailingSlash: true` trong next.config.ts — mỗi
+ * route thành một thư mục riêng có index.html, chạy được trên host tĩnh.
+ *
+ * Đặt ở đây (không phải lib/search.ts) vì cả Server Component lẫn tầng search
+ * đều cần, mà Server Component thì không nên kéo theo fuse.js.
+ */
+export function hrefOf(entry: { category: string; id: string }): string {
+  return `/${entry.category}/${entry.id}/`;
+}
+
 export type Param = {
   name: string;
   type: string;

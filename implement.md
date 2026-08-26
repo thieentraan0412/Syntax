@@ -2,9 +2,10 @@
 
 > **Nguồn yêu cầu:** `guild.txt` — "Xây dựng một website cheatsheet, web này cho phép search tìm kiếm cú pháp câu, hàm, biến của Playwright."
 >
-> **Trạng thái:** 🚧 Phase 0 gần xong (vướng `npm install`) · Phase 1 ✅ 322 entry · Phase 2 ✅ p95 14,79 ms
+> **Trạng thái:** Phase 0–4 ✅ · 322 entry · 341 trang tĩnh · trang chi tiết 136 KB gzip · tiếp theo Phase 5 (SEO)
 > **Ngày lập:** 2026-08-25
-> **Cập nhật:** 2026-08-25 — (1) thêm mục 6 "Nguồn dữ liệu" · (2) **chốt stack Next.js**, viết lại mục 3/4 và Phase 0/3/5/7
+> **Cập nhật:** 2026-08-26 — `npm install` xong, Phase 0 đóng lại; vá `fuse.js` + `prettier` thiếu trong `package.json`, 2 lỗi lint cũ, và lỗ hổng `data:typecheck` im lặng rơi về `node_modules`
+> _2026-08-25_ — (1) thêm mục 6 "Nguồn dữ liệu" · (2) **chốt stack Next.js**, viết lại mục 3/4 và Phase 0/3/5/7
 > **Playwright bản tham chiếu:** `v1.62.1`
 
 ---
@@ -400,7 +401,7 @@ Mỗi nhóm = 1 route segment. Ví dụ nhóm 4 → `/locators/*`.
 
 ## 8. Checklist thực hiện theo phase
 
-### Phase 0 — Khởi tạo dự án ⚠️ GẦN XONG (2026-08-25, làm lại)
+### Phase 0 — Khởi tạo dự án ✅ XONG (2026-08-26)
 
 > **Bản ghi trước sai.** Mục này từng được đánh dấu "✅ XONG" nhưng thư mục dự án
 > khi đó chỉ còn `guild.txt` + `implement.md`, repo chưa có commit nào. Toàn bộ
@@ -409,13 +410,13 @@ Mỗi nhóm = 1 route segment. Ví dụ nhóm 4 → `/locators/*`.
 - [x] `.gitignore` (`node_modules`, `.next`, `out`, `test-results`, `playwright-report`, `.cache`)
 - [x] Scaffold Next.js — xem ghi chú ⚠️ bên dưới, lệnh trong kế hoạch **không chạy được nguyên văn**
 - [x] `next.config.ts`: `output: 'export'` + `images: { unoptimized: true }` + `trailingSlash: true`
-- [x] Cấu hình Prettier (`.prettierrc.json` + `.prettierignore`)
+- [x] Cấu hình Prettier (`.prettierrc.json` + `.prettierignore`) — **gói `prettier` cài bổ sung 2026-08-26**, trước đó chỉ có file cấu hình
 - [x] Script `format`, `format:check`, `typecheck` + 8 script `data:*` cho pipeline dữ liệu
-- [ ] ❌ **`npm install` chưa xong** — chặn 4 mục dưới đây. Xem "Vướng mạng" bên dưới.
-- [ ] Cài `@playwright/test@1.62.1` (devDependency)
-- [ ] `npm run dev` lên được trang mặc định
-- [ ] `npm run build` sạch → sinh `out/index.html`
-- [ ] `npm run typecheck` và `npm run lint`
+- [x] `npm install` — **xong 2026-08-26**: 358 gói trong 3 phút, 0 lỗ hổng, có `package-lock.json`
+- [x] Cài `@playwright/test@1.62.1` (devDependency, ghim **đúng số**, không `^` — xem lý do bên dưới)
+- [x] `npm run dev` lên được trang mặc định — Ready 518 ms, `GET /` → 200 (16,4 KB)
+- [x] `npm run build` sạch → sinh `out/index.html` (12,0 KB) + 4 route tĩnh
+- [x] `npm run typecheck` và `npm run lint` — cả hai sạch (sau khi vá 2 lỗi cũ, xem bên dưới)
 
 #### ⚠️ Ba chỗ thực tế khác kế hoạch
 
@@ -432,11 +433,17 @@ mv pw-tmp/* pw-tmp/.[!.]* . && rmdir pw-tmp
 
 **3. Thêm `trailingSlash: true`** (không có trong kế hoạch gốc). Cần cho host tĩnh: mỗi route thành thư mục riêng có `index.html`, để `/locators/get-by-role/` chạy trên GitHub Pages mà không cần cấu hình rewrite.
 
-#### 🔴 Vướng mạng — `npm install` chưa hoàn tất
+#### 🟢 Vướng mạng — đã gỡ (2026-08-26)
 
-Băng thông tới `registry.npmjs.org` từ máy này đo được **~3,6 KB/s**. Đã thử 4 lần, mỗi lần tải được tới **~430 MB** rồi đứt `ECONNRESET` và npm rollback sạch `node_modules`.
+Chạy lại nguyên `npm install` với **registry chính thức**, giữ đúng quyết định đã
+chốt hôm trước. Lần này **xong sau 3 phút**, không đứt lần nào.
 
-Đã đo thử mirror khác để tham khảo:
+Lý do không phải mạng khá lên mà là **cache**: 4 lần thất bại hôm 2026-08-25 tuy bị
+npm rollback sạch `node_modules` nhưng tarball đã tải thì vẫn nằm lại trong
+`~/AppData/Local/npm-cache` — đo được **1,6 GB**. Lượt này npm chỉ phải tải phần
+còn thiếu. Bài học: `npm install` đứt giữa chừng **không mất trắng**, cứ chạy lại.
+
+Số đo mirror hôm 2026-08-25 giữ lại để tham khảo — **không dùng đến**:
 
 | Registry                   | Tốc độ đo được | So với gốc |
 | -------------------------- | -------------- | ---------- |
@@ -444,17 +451,112 @@ Băng thông tới `registry.npmjs.org` từ máy này đo được **~3,6 KB/s*
 | `registry.yarnpkg.com`     | 82 KB/s        | ~23×       |
 | `registry.npmmirror.com`   | 1,5 MB/s       | ~400×      |
 
-Đã hỏi và **chốt giữ registry chính thức**, chấp nhận chờ. Cần chạy lại `npm install` khi mạng khá hơn, rồi làm nốt 4 mục còn lại của Phase 0.
+#### 🐛 Bốn lỗ hổng cũ lộ ra khi lần đầu chạy được đủ bộ lệnh
 
-**Việc này KHÔNG chặn Phase 1** — pipeline dữ liệu chạy bằng Node thuần (Node 25 chạy TypeScript trực tiếp, không cần `tsx`), và `typescript` đã kịp có mặt trong một lần cài trước khi bị rollback.
+Cả bốn đều là nợ có sẵn, không phải do lượt cài này sinh ra. Chúng nằm im được
+lâu vì **chưa lần nào chạy nổi `npm run build` hay `npm run lint`** để phát hiện.
+
+**1. `fuse.js` chưa bao giờ có trong `package.json`.** `lib/search.ts` đã
+`import Fuse from "fuse.js"` từ Phase 2, nhưng dependency thì chưa từng được khai
+báo — Phase 2 benchmark được là nhờ `node_modules` sót lại của một lượt cài dở.
+Nếu để nguyên thì Phase 3 vừa ráp hook vào UI là build vỡ. Đã thêm
+`fuse.js@7.5.0` — **đúng bản đã benchmark p95 14,79 ms**, không lấy bản mới hơn.
+
+**2. `npm run lint` báo 1 lỗi + 1 cảnh báo.**
+
+- `lib/use-search.ts` — lỗi `react-hooks/set-state-in-effect`: gọi
+  `setDebounced("")` đồng bộ ngay trong thân effect. Sửa bằng cách dồn việc "xoá
+  trắng thì trả kết quả ngay" vào chính `setQuery`/`clear` — tức là xử lý tại
+  **nguồn thay đổi** thay vì để effect dọn sau. Hành vi giữ y nguyên (xoá trắng
+  vẫn không phải chờ 120 ms), lại bớt được một lượt render thừa.
+- `scripts/fetch-sources.ts` — import thừa `readFile`, đã bỏ.
+
+**3. `prettier` cũng chưa bao giờ được cài** — cùng loại lỗi với `fuse.js`.
+`.prettierrc.json` + `.prettierignore` có sẵn từ Phase 0, script `format` /
+`format:check` có sẵn trong `package.json`, nhưng gói thì không. Chạy
+`npm run format:check` ra thẳng `'prettier' is not recognized`. Đã cài
+`prettier` + `prettier-plugin-tailwindcss` (cấu hình có khai báo plugin này).
+
+**4. `eslint.config.mjs` không ignore `.cache/`.** Cái này nằm im lâu nhất vì
+`.cache/` khi đó **rỗng** — không có file thì không có gì để lint. Đến lúc chạy
+`npm run data:fetch` nạp lại nguồn, `.cache/` có `pw.d.ts` (1,1 MB) +
+`pw-test.d.ts` (395 KB) thì `npm run lint` **nổ 509 lỗi**, toàn bộ là type của
+Playwright chứ không dính gì code của mình. `.prettierignore` vốn đã liệt kê
+`.cache` / `test-results` / `playwright-report`; ESLint thì thiếu cả ba. Đã thêm
+vào `globalIgnores` cho hai danh sách khớp nhau.
+
+#### 🟡 `npm run format:check` đang đỏ — **cố ý để nguyên, chờ bạn quyết**
+
+Cài xong Prettier thì lộ ra: **chưa file nào trong repo từng đi qua Prettier** — 41 file lệch:
+
+| Loại lệch | Số file | Bản chất |
+| --- | --- | --- |
+| Khác nội dung thật | **30** | `printWidth` 100 nhưng code viết tay theo ~80 cột → Prettier gộp lại các `import` nhiều dòng, v.v. |
+| Chỉ khác xuống dòng | **11** | file trên đĩa là CRLF, Prettier mặc định `endOfLine: "lf"` |
+
+**Chưa chạy `npm run format`.** Sweep 30 file là viết lại gần hết code đã commit
+của Phase 1–2 — nằm ngoài Phase 0, và sẽ chôn mất diff thật của lượt này. Thêm nữa
+bạn đã cố ý đưa `implement.md` vào `.prettierignore` vì "bảng đã căn thủ công",
+nên tôi không tự ý cho 322 entry dữ liệu đi qua máy căn lề. **Cần bạn chốt**, ba lựa chọn:
+
+1. `npm run format` một lượt, commit riêng — từ đó `format:check` xanh vĩnh viễn
+2. Thêm `"endOfLine": "auto"` vào `.prettierrc.json` rồi format — bớt được 11 file CRLF khỏi diff
+3. Nâng `printWidth` cho khớp cách viết hiện tại, rồi mới format — diff nhỏ nhất
+
+Đã làm sẵn một việc **không thể chờ**: đưa `public/search-index.json` và
+`data/candidates.json` vào `.prettierignore`. Hai file này do script sinh ra —
+Prettier căn lại thì lượt `data:index` / `data:merge` kế tiếp đạp về ngay, diff
+nhảy qua nhảy lại mãi không dứt.
+
+#### ⚠️ `npm run typecheck` phải chạy SAU `npm run build`
+
+Chạy `tsc --noEmit` trên cây sạch thì lỗi ngay:
+`app/layout.tsx(20,50): error TS2304: Cannot find name 'LayoutProps'`.
+
+`LayoutProps` là type **Next.js 16 tự sinh** vào `.next/types/`, mà `tsconfig.json`
+có `include` thư mục đó. Chưa build lần nào thì chưa có file → tsc không tìm ra.
+Không phải lỗi code. Thứ tự đúng: `build` (hoặc `dev` một lượt) **rồi mới**
+`typecheck`. **Nhớ cho CI ở Phase 7** — đảo thứ tự là đỏ pipeline oan.
+
+#### ✅ Chạy lại toàn bộ bộ kiểm với dependency thật
+
+Đây là lần đầu Phase 1–2 được kiểm bằng `node_modules` cài đàng hoàng, không phải
+đồ sót:
+
+| Lệnh                    | Kết quả                                                          |
+| ----------------------- | ---------------------------------------------------------------- |
+| `npm run data:validate` | sạch                                                             |
+| `npm run data:typecheck`| **296/296** đoạn code biên dịch sạch (type từ `.cache/`, **không** qua `node_modules`) |
+| `npm run data:index`    | 322 entry · thô 93,4 KB · gzip 21,9 KB · **brotli 18,9 KB**      |
+| `npm run search:check`  | **29/29** phép kiểm đạt                                          |
+| `npm run build`         | sạch, 4 route tĩnh                                               |
+
+`public/search-index.json` sinh lại **byte-for-byte y hệt bản đã commit** — pipeline
+chạy lại cho ra đúng cùng kết quả, không phụ thuộc máy.
+
+> **Đính chính (2026-08-26).** Bản ghi đầu của mục này nói `data:typecheck` kiểm
+> code mẫu bằng `@playwright/test` trong `node_modules`. **Sai.**
+> `scripts/typecheck-samples.ts` map `@playwright/test` → `.cache/pw-test.d.ts`
+> qua `compilerOptions.paths`, tức bản đã ghim tải về, **không** đụng
+> `node_modules`. Đã đo lại bằng `program.getSourceFiles()`: nạp đúng
+> `D:/Syntax/.cache/pw.d.ts`.
+
+Vậy lý do ghim `@playwright/test` đúng `1.62.1` thay vì `^1.62.1` **không phải**
+vì `data:typecheck` (việc đó `.cache` lo). Lý do đúng là **Phase 6**: test E2E
+sẽ chạy bằng chính gói trong `node_modules`, nên nó phải cùng bản với API mà
+cheatsheet đang mô tả — không thì test xanh trên một bản, còn trang thì tả bản khác.
+Ghim đúng số cũng đồng bộ với cách `next` / `react` đã ghim sẵn trong dự án.
 
 #### Ghi chú thêm
 
 - `create-next-app` tự sinh `AGENTS.md` + `CLAUDE.md` — giữ nguyên
 - `implement.md` đã đưa vào `.prettierignore` — tài liệu viết tay, không để Prettier căn lại bảng
-- **Chưa commit** — repo đã `git init`, chờ bạn quyết định
+- `package-lock.json` lần đầu có mặt (243 KB) — **cần commit**, nó khoá lại toàn bộ 364 gói
+- npm cảnh báo `unrs-resolver` có script cài chưa duyệt (`npm approve-scripts`) — **bỏ qua được**, eslint vẫn chạy đúng, chưa cần cấp quyền
+- Browser Playwright (chromium 1223 · firefox 1522 · webkit 2287) **đã có sẵn trên máy** — Phase 6 không phải chờ tải ~400 MB
+- Phase 0 phần scaffold đã commit ở `1f6ce08`; phần `npm install` + các bản vá ở trên **chưa commit**
 
-### Phase 1 — Tầng dữ liệu ✅ XONG (2026-08-25)
+### Phase 1 — Tầng dữ liệu ✅ XONG (2026-08-25) · rà lại + vá 1 lỗ hổng (2026-08-26)
 
 > Nguyên tắc: **máy lo phần chính xác, người lo phần chọn lọc & giải thích.**
 
@@ -537,7 +639,61 @@ Kế hoạch dự trù 15,5 KB brotli cho 340 entry. Thực tế 18,9 KB cho 322
 
 **Về `typecheck-samples.ts`:** type lấy thẳng từ `.cache/pw-test.d.ts` + `.cache/pw.d.ts` qua `compilerOptions.paths`, không qua `node_modules`. Nghĩa là code mẫu được kiểm với **đúng bản Playwright mà cheatsheet đang ghim**, chứ không phải bản đang cài trên máy. Đây cũng là lý do Phase 1 chốt được dù `npm install` chưa xong.
 
-### Phase 2 — Search engine ✅ XONG (2026-08-25)
+#### 🔍 Rà lại Phase 1 (2026-08-26) — số liệu đúng hết, nhưng lộ một lỗ hổng
+
+Chạy lại với `node_modules` thật + mạng thật, đối chiếu từng con số đã ghi ở trên:
+
+| Điều đã ghi | Đo lại 2026-08-26 |
+| --- | --- |
+| 322 entry, đủ 15 nhóm | ✓ khớp **từng nhóm một** với bảng ở mục 1c |
+| 296 đoạn TS · 26 đoạn shell | ✓ 296 + 26 = 322 |
+| 322/322 `docsUrl` có thật | ✓ đối chiếu `playwright.dev/sitemap.xml` **thật** — 358 URL |
+| 296/296 biên dịch sạch | ✓ |
+| `related` không trỏ hụt | ✓ |
+
+**Nhưng lúc đó `.cache/` đang rỗng — mà `npm run data:typecheck` vẫn báo "296/296 sạch".**
+
+Đó là lỗi thật chứ không phải may. `compilerOptions.paths` chỉ là **gợi ý**: trỏ vào
+file không có thật thì TypeScript **im lặng** rơi về `node_modules`. Đo bằng
+`program.getSourceFiles()`:
+
+| Trạng thái `.cache` | Type thực sự nạp vào | Số lỗi |
+| --- | --- | --- |
+| có `pw*.d.ts` | `.cache/pw.d.ts` — đúng bản ghim ✅ | 0 |
+| thiếu `pw*.d.ts` | `node_modules/playwright-core/…` — bản đang cài ⚠️ | **0** |
+
+Cả hai đều "xanh". Nghĩa là lời hứa "kiểm bằng đúng bản Playwright đã ghim" có thể
+bốc hơi mà **không ai hay** — xanh nhưng vô nghĩa, kiểu sai tệ nhất vì nó không kêu.
+
+**Đã vá** `scripts/typecheck-samples.ts`: thiếu `.cache/pw-test.d.ts` hoặc
+`.cache/pw.d.ts` là **dừng ngay, exit 1**, kèm câu chỉ thẳng việc phải làm. Mỗi lượt
+chạy cũng in ra nguồn type đã dùng, để đọc log là biết chứ không phải đoán:
+
+```
+→ ghép 296 đoạn code vào .cache/samples/  (bỏ qua 26 đoạn shell· 5 stub import minh hoạ)
+→ type ghim: .cache/pw-test.d.ts + .cache/pw.d.ts
+✓ cả 296 đoạn code đều biên dịch sạch
+```
+
+Đã thử ngược lại để chắc: giấu `pw-test.d.ts` đi thì script **exit 1**, không còn
+báo sạch nữa.
+
+Đây vốn đã là cách `validate-data.ts` xử lý check sitemap — mất mạng thì nó **báo to**
+rồi mới bỏ qua, chứ không lặng lẽ. Hai script giờ nhất quán ở chỗ đó.
+
+#### ⚠️ `.cache/` nằm trong `.gitignore` — nhớ cho CI ở Phase 7
+
+`data:typecheck` và `data:pipeline` đều cần `.cache/`, mà thư mục này không commit.
+Clone mới hoặc chạy CI đều phải nạp nguồn trước:
+
+```bash
+npm run data:fetch
+```
+
+rồi mới `npm run data:check`. Riêng `npm run build` thì **không** cần — nó chỉ chạy
+`data:index`, đọc từ `data/*.ts` đã commit.
+
+### Phase 2 — Search engine ✅ XONG (2026-08-25) · rà lại 2026-08-26
 
 **Đo thật trên 322 entry: p95 = 14,79 ms — dư 3,4× so với mục tiêu 50 ms. 29/29 phép kiểm hành vi đạt.**
 
@@ -592,38 +748,288 @@ Những thứ nhìn mắt không thấy được:
 
 > **Còn nợ Phase 3:** ráp hook vào UI thật để bấm thử. Logic đã kiểm bằng test, nhưng chưa có ai gõ vào ô input thật — đó là việc của Phase 3, không phải Phase 2.
 
-### Phase 3 — Giao diện
+#### 🔍 Rà lại Phase 2 (2026-08-26)
 
-#### 3a. Trang SSG (Server Component — 0 KB JS)
+Đọc lại cả 209 dòng `lib/search.ts` đối chiếu từng gạch đầu dòng của checklist —
+**có thật trong code hết**, không mục nào tick khống:
 
-- [ ] `app/[category]/[id]/page.tsx` + `generateStaticParams()` → sinh ~340 trang
-- [ ] `app/[category]/page.tsx` + `generateStaticParams()` → 15 trang nhóm
-- [ ] `components/CodeBlock.tsx` — gọi Shiki **server-side**, trả HTML đã highlight
-- [ ] `components/EntryCard.tsx` — title, signature, mô tả, params, badge `since`, link docs, related
-- [ ] `components/CopyButton.tsx` — `'use client'`, là **JS duy nhất** trên trang chi tiết
-- [ ] Kiểm: tắt JS trong browser, trang chi tiết vẫn đọc được đầy đủ
+| Mục checklist | Chỗ nó nằm |
+| --- | --- |
+| Trọng số 0.5 / 0.2 / 0.15 / 0.1 | `WEIGHTS` + `FUSE_OPTIONS.keys` |
+| Tải lazy, đúng 1 lần / phiên | `loadSearchEngine()` — `cached ??=`, hỏng thì `cached = null` để thử lại |
+| Debounce 120 ms | `DEBOUNCE_MS` trong `lib/use-search.ts` |
+| Tô sáng | `highlight()` trả `Segment[]`, gộp khoảng chồng/liền nhau |
+| Gợi ý "Ý bạn là…" | `suggest()` — nới `threshold` 0.35 → 0.6, chỉ soi `title` |
+| Lọc nhóm sau khi tìm | `search()` bỏ qua `category` khi chấm điểm rồi mới lọc |
+
+Chạy lại trên máy này: **29/29 phép kiểm đạt**, **p95 13,01 ms** (bản ghi cũ 14,79 ms —
+chênh do nhiễu máy, cả hai đều dư ~4× so với ngưỡng 50 ms).
+
+Một số đo bản ghi cũ không có: **lượt chậm nhất 53,33 ms**, tức có vượt ngưỡng 50 ms
+— nhưng đúng **1 lượt trên 500**, là lượt đầu lúc JIT chưa nóng (p99 chỉ 25,67 ms).
+Không phải vấn đề, nhưng ghi ra để sau này ai đọc số cũng thấy đủ, không phải chỉ
+thấy phần đẹp.
+
+#### ⚠️ Rủi ro còn treo: `lib/use-search.ts` không có test tự động
+
+`scripts/check-search.ts` phủ **`lib/search.ts`** — tầng thuần, không React. Hook thì
+**chưa có phép kiểm nào**, mà 2026-08-26 nó vừa bị sửa (dời việc "xoá trắng trả kết quả
+ngay" từ effect sang `setQuery`/`clear` để hết lỗi `react-hooks/set-state-in-effect`).
+
+Sửa xong `typecheck` + `lint` đều sạch, nhưng **không có test nào chứng minh hành vi
+không đổi**. Đây đúng chỗ Phase 3 (bấm tay) và Phase 6 (Playwright) phải soi kỹ:
+
+- gõ → chờ 120 ms mới ra kết quả, không ra sớm
+- xoá trắng → kết quả biến **ngay**, không phải chờ thêm 120 ms
+- gõ "abc" → xoá trắng → gõ "x": không được nháy lại kết quả cũ của "abc"
+
+### Phase 3 — Giao diện ✅ XONG (2026-08-26)
+
+**341 trang tĩnh sinh trong 5,1 giây. Trang chi tiết đọc được đầy đủ khi tắt JS.**
+
+#### 3a. Trang SSG (Server Component)
+
+- [x] `app/[category]/[id]/page.tsx` + `generateStaticParams()` → **322 trang** (kế hoạch ước ~340)
+- [x] `app/[category]/page.tsx` + `generateStaticParams()` → 15 trang nhóm
+- [x] `components/CodeBlock.tsx` — Shiki **server-side**, hai theme cùng lúc bằng CSS variable
+- [x] `components/EntryCard.tsx` — title, signature, mô tả, params, badge `since`, note, link docs, related, tags
+- [x] `components/CopyButton.tsx` — JS **của mình** duy nhất trên trang chi tiết
+- [x] Kiểm tắt JS: grep thẳng HTML thô trong `out/` — bảng tham số, liên quan, trả về, lưu ý, code đã tô màu, cả 15 link sidebar đều nằm sẵn trong file
 
 #### 3b. Trang search (Client Component)
 
-- [ ] `app/page.tsx` — `SearchBar` autofocus
-- [ ] `CategoryFilter` — chip lọc đa chọn, hiện số lượng
-- [ ] `SearchResults` — link sang trang SSG tương ứng
+- [x] `app/page.tsx` — `SearchBar` autofocus, thêm phím tắt `/`
+- [x] `CategoryFilter` — chip kèm số lượng, **chỉ hiện nhóm có kết quả**
+- [x] `SearchResults` — tô sáng đoạn khớp, link sang trang SSG tương ứng
+- [x] Ráp `useSearch()` vào UI thật — trả xong món nợ Phase 2 ghi ở trên
 
 #### 3c. Chung
 
-- [ ] `app/layout.tsx` — dark / light mode (`next-themes` hoặc tự viết), tránh nháy màu khi load
-- [ ] Responsive: mobile sidebar thu thành drawer
-- [ ] Hiển thị `generatedFrom` ở footer (vd "Playwright v1.62.1")
+- [x] `app/layout.tsx` — sáng / tối / theo hệ thống, **không nháy màu** (script inline trong `<head>`, đúng pattern `preventing-flash-before-hydration` của docs Next 16)
+- [x] Responsive — xem ghi chú ⚠️ bên dưới
+- [x] `generatedFrom` ở footer: "322 cú pháp · dữ liệu trích từ `playwright-core@1.62.1`"
 
-### Phase 4 — Tính năng trải nghiệm
+#### 🔴 "0 KB JS" — kế hoạch hứa sai, không đạt được
 
-- [ ] Phím tắt: `/` hoặc `Ctrl+K` mở search · `↑ ↓` di chuyển · `Enter` mở · `C` copy · `Esc` đóng
-- [ ] Search overlay gọi được từ **mọi trang** (kể cả trang chi tiết SSG)
-- [ ] Lịch sử tìm kiếm gần đây (`localStorage`, tối đa 8)
-- [ ] Ghim mục yêu thích (`localStorage`)
-- [ ] Nút "Copy tất cả code của nhóm này"
-- [ ] Bảng phím tắt (phím `?`)
-- [ ] `<Link prefetch>` cho kết quả search top 5 → bấm vào là hiện ngay
+Mục 3.1 và checklist 3a đều ghi trang chi tiết là "**0 KB JS**". Đo thật:
+
+| | thô | gzip | brotli |
+| --- | --- | --- | --- |
+| JS trang chi tiết (7 chunk) | 454,1 KB | 135,4 KB | **115,9 KB** |
+
+Đây là runtime React + App Router, **App Router luôn kèm nó**, không có cách tắt.
+"0 KB JS" là điều bất khả thi ngay từ lúc chốt Next.js, không phải do làm sai.
+
+Phần **đúng** của lời hứa thì vẫn giữ được, và đã đo:
+
+- `fuse.js` **không lọt** vào chunk trang chi tiết — grep cả 4 chunk lớn: 0 dấu vết
+- Trang chi tiết **không tải** `search-index.json` — kiểm bằng `performance.getEntriesByType('resource')`: `false`
+- Tắt JS thì trang vẫn đọc được **đầy đủ**
+
+⚠️ **Cảnh báo cho Phase 5:** mục đó đặt ngưỡng "JS trang chi tiết < 100 KB gzip".
+Hiện là **135,4 KB gzip** — **vượt 35%**. Không phải lỗi Phase 3 (toàn bộ là runtime
+framework), nhưng Phase 5 sẽ phải hoặc nới ngưỡng, hoặc tính cách khác.
+
+#### ⚠️ Ba chỗ làm khác kế hoạch, đều có lý do
+
+**1. Chip lọc ĐƠN chọn, không phải đa chọn.** Kế hoạch ghi "chip lọc đa chọn".
+Nhưng hook `useSearch()` của Phase 2 có API `category: Category | null` và đã có
+phép kiểm ăn theo API đó ("lọc nhóm chỉ trả entry của nhóm đó", "lọc nhóm giữ
+nguyên thứ hạng"). Đổi sang đa chọn là sửa API đã ký và viết lại test. Với 15
+nhóm mà kết quả thường dồn vào 1–2 nhóm thì đơn chọn cũng đủ dùng. **Nếu bạn vẫn
+muốn đa chọn thì nói, tôi sửa cả hook lẫn test.**
+
+**2. Mobile: hàng chip cuộn ngang, không phải drawer.** Kế hoạch ghi "sidebar thu
+thành drawer". Drawer thì phải có JS mở/đóng — mà nguyên tắc của chính Phase 3 là
+trang chi tiết chỉ có `CopyButton` cần JS. Nay cùng một khối HTML, khác mỗi CSS:
+desktop là cột dọc, mobile là hàng cuộn ngang. Không thêm JS, và với 15 mục thì
+cuộn một phát cũng nhanh hơn mở drawer → chọn → đóng.
+
+**3. Không dựng `lib/entries.ts` kiểu bọc lại `data/index.ts`.** Mục 4 vẽ
+`lib/entries.ts` có `getAllEntries` / `getEntry` / `getCategories` — nhưng
+`data/index.ts` đã có sẵn `getEntry` / `getEntriesByCategory` / `countByCategory`,
+và chính nó tự đặt ra nguyên tắc "để không có hai nguồn sự thật". Bọc thêm một
+lớp chỉ để đúng sơ đồ thư mục là tự tạo chỗ lệch. `lib/entries.ts` vẫn có, nhưng
+chỉ chứa thứ chưa ai làm: `resolveRelated()` và `categoriesInOrder()`.
+
+#### 🐛 Một bẫy JavaScript suýt lọt
+
+`hrefOf()` vốn nằm ở `lib/search.ts`. Server Component cần nó, mà import từ đó
+thì kéo luôn `fuse.js` vào bundle server — nên chuyển hàm về `lib/types.ts` (không
+phụ thuộc gì) rồi re-export lại cho chỗ gọi cũ khỏi phải đổi.
+
+Lần đầu viết là `export { hrefOf } from "./types.ts"` — **sai**: dạng này KHÔNG
+tạo binding cục bộ, nên `hrefOf(r.item)` ngay trong `SearchEngine.search()` thành
+`ReferenceError`. Phải `import` rồi mới `export { hrefOf }`.
+
+`npm run search:check` bắt được **ngay lập tức** — đúng loại lỗi mà đọc code bằng
+mắt sẽ trượt, vì dòng đó trông hoàn toàn hợp lệ.
+
+#### ✅ `npm run typecheck` giờ chạy độc lập được
+
+Phase 0 có ghi cái bẫy "typecheck phải chạy SAU build" vì `LayoutProps` là type
+Next tự sinh. Docs Next 16 có lời giải gọn hơn: `next typegen` sinh type route mà
+không cần build. Script đã đổi thành:
+
+```
+"typecheck": "next typegen && tsc --noEmit"
+```
+
+Giờ `npm run typecheck` chạy trên cây sạch cũng xanh. **Cái bẫy ghi ở Phase 0 coi
+như đã gỡ** — CI ở Phase 7 không phải xếp thứ tự build → typecheck nữa.
+
+#### 🔎 Kiểm bằng browser thật, không chỉ tin exit code
+
+Chạy trên bản export tĩnh trong `out/` — đúng thứ sẽ nằm trên CDN:
+
+| Việc kiểm | Kết quả |
+| --- | --- |
+| Gõ sai `getByRoel` | `page.getByRole()` lên đầu · chip đếm 8 / Locators 7 / Config 1 |
+| Gõ sai `tohavetext` | ra `toHaveText`, link đúng `/assertions/to-have-text/` |
+| **Xoá trắng ô search** | kết quả biến **ngay**, lưới 15 nhóm quay lại |
+| **Gõ → xoá → gõ lại** | danh sách trống ngay, **không nháy kết quả cũ**; 120 ms sau mới ra kết quả mới |
+| Theme 3 trạng thái | tối → theo hệ thống → sáng → tối; nhãn, màu nền và token Shiki đổi đúng |
+| Trang chi tiết | **không** tải `search-index.json` |
+| `search-index.json` | chỉ tải sau khi gõ, HTTP 200 |
+
+Ba dòng in đậm chính là ba rủi ro đã ghi ở cuối Phase 2 khi tôi sửa
+`lib/use-search.ts` mà không có test nào phủ. **Đã kiểm tay xong, cả ba đều đúng.**
+Phase 6 nên biến đúng ba ca này thành test Playwright.
+
+> **Hai lần "phát hiện lỗi" hoá ra là lỗi của cách kiểm, không phải của code:**
+> (1) `ctrl+a` / `Backspace` qua công cụ browser không tới được ô input — phải
+> dùng `form_input`; (2) bấm nút theme 3 lần trong **cùng một tick** thì React gộp
+> cả 3 vào một lượt render nên cả 3 dùng chung closure cũ — thêm 120 ms giữa các
+> lần bấm là chạy đúng ngay. Ghi lại để Phase 6 viết test khỏi vấp lại.
+
+#### 📋 Nợ mang sang phase sau
+
+- **122/287 param không có mô tả** (42,5%, gần hết là `options: Object` — nguồn
+  `types.d.ts` không mô tả chúng). UI hiện dấu `—` thay vì để ô trống trông như
+  bảng hỏng. Muốn lấp thì phải viết tay, thuộc phần "người lo phần giải thích".
+- `generateMetadata()` + canonical **đã làm sẵn ở Phase 3** — trừ được 2 gạch của Phase 5.
+- `sitemap.ts` / `robots.ts` / OG image / JSON-LD vẫn nằm ở Phase 5, chưa làm.
+
+### Phase 4 — Tính năng trải nghiệm ✅ XONG (2026-08-26)
+
+**Toàn bộ tính năng của phase này chỉ làm trang chi tiết nặng thêm 0,8 KB gzip.**
+
+- [x] Phím tắt: `/` hoặc `Ctrl+K` mở search · `↑ ↓` di chuyển · `Enter` mở · `C` chép · `Esc` đóng
+- [x] Search overlay gọi được từ **mọi trang**, kể cả 322 trang chi tiết SSG
+- [x] Lịch sử tìm kiếm gần đây (`localStorage`, tối đa 8)
+- [x] Ghim mục yêu thích (`localStorage`)
+- [x] Nút "Chép cả N đoạn code" ở trang nhóm
+- [x] Bảng phím tắt (phím `?`)
+- [x] `<Link prefetch>` cho 5 kết quả đầu — ⚠️ **chưa kiểm chứng được**, xem bên dưới
+
+#### 💡 Cách giữ được lời hứa "trang chi tiết không trả tiền cho tìm kiếm"
+
+Yêu cầu "overlay gọi từ mọi trang" đụng thẳng vào nguyên tắc của mục 3.1. Nếu
+overlay import `useSearch` theo cách thường thì `fuse.js` rơi vào chunk chung và
+**cả 322 trang chi tiết đều phải tải nó**, kể cả người không bao giờ tìm gì.
+
+Cách giải: tách làm hai lớp.
+
+| Lớp | Nội dung | Nằm ở đâu |
+| --- | --- | --- |
+| `SearchTrigger` | một listener bàn phím + hai dòng state | chunk chung, **mọi trang** |
+| `SearchOverlay` + `fuse.js` + `search-index.json` | toàn bộ phần nặng | sau `next/dynamic`, **chỉ tải khi mở tìm kiếm lần đầu** |
+
+Đo trên bản export tĩnh, trang `/locators/get-by-role/`:
+
+| | trước Phase 4 | sau Phase 4 |
+| --- | --- | --- |
+| Số chunk JS tải về | 7 | 7 |
+| gzip | 135,4 KB | **136,2 KB** (+0,8 KB) |
+| Chunk chứa `fuse` có tải không | — | **không** |
+| `search-index.json` có tải không | không | **không** |
+
+Chunk lazy (overlay + Fuse) là **83,6 KB brotli**, chỉ tải ở lần mở tìm kiếm đầu
+tiên. Kiểm bằng `performance.getEntriesByType('resource')`: vào trang chi tiết
+thì `daTaiChunkFuse: false`; bấm `/` xong mới thành `true`.
+
+Cũng đã kiểm ngược lại điều đáng sợ hơn: **Shiki không lọt vào chunk client nào**
+(`grep -l "oniguruma\|shiki" out/_next/static/chunks/*.js` → rỗng). Shiki nặng
+vài MB; lọt xuống client là hỏng toàn bộ ngân sách.
+
+#### 🧩 Ba quyết định kỹ thuật
+
+**1. Dùng `<dialog>` thật + `showModal()`, không tự dựng div nổi.** Trình duyệt
+cho sẵn focus trap, `Esc` để đóng, `::backdrop`, và khoá tương tác với phần
+trang bên dưới. Tự viết lại mấy thứ đó vừa dài vừa dễ sai đúng chỗ bàn phím —
+mà bàn phím chính là điểm của cả phase này.
+
+**2. Trang chủ KHÔNG mở overlay.** `SearchTrigger` đọc `usePathname()` và bỏ qua
+`/` + `Ctrl+K` khi đang ở trang chủ, nhường cho ô search có sẵn giữa màn hình —
+mở một hộp nổi đè lên chính ô đang trống là thừa. Đã kiểm: ở trang chủ cả hai
+phím đều đưa con trỏ về ô search, `moOverlay: false`.
+
+**3. Gom ba thứ lặp thành module dùng chung** thay vì viết hai lần:
+`lib/local-store.ts` (kho localStorage đọc bằng `useSyncExternalStore` — dùng cho
+cả "gần đây" lẫn "đã ghim"), `lib/use-copy.ts`, `lib/use-list-nav.ts`.
+
+Cả ba đều dùng `useSyncExternalStore` chứ không `useEffect` + `setState`, vì đã
+vấp rule `react-hooks/set-state-in-effect` một lần ở Phase 2 rồi.
+
+#### 🐛 Lỗi UX thật, tìm ra nhờ môi trường kiểm bị hỏng
+
+Bấm phím `C` mà nút chép **không đổi gì cả**. Đào ra:
+
+```
+NotAllowedError — Failed to execute 'writeText' on 'Clipboard': Document is not focused.
+```
+
+Nguyên nhân trực tiếp là môi trường (pane trình duyệt không được focus), nhưng nó
+lộ ra một lỗi thật trong code: `CopyButton` bắt lỗi rồi **im lặng**. Người dùng
+bấm nút, không có gì xảy ra, không hiểu tại sao. Mà `writeText` bị từ chối trong
+khá nhiều tình huống đời thực — trang không phải https, tab mất focus, quyền bị chặn.
+
+Đã sửa: thêm trạng thái thứ ba, nút hiện **"Không chép được"** kèm tooltip gợi ý
+bôi đen rồi `Ctrl+C`. Ba trạng thái `cho | xong | loi` gom vào `lib/use-copy.ts`
+cho cả nút chép một đoạn lẫn nút chép cả nhóm.
+
+Cái này nếu chỉ kiểm trên máy có clipboard hoạt động thì **không bao giờ thấy**.
+
+#### ⚠️ `prefetch` — đã cài, chưa kiểm chứng được
+
+`SearchResults` đặt `prefetch` cho 5 kết quả đầu và `prefetch={false}` cho phần
+còn lại (để mặc định thì cả 50 link lọt vào tầm nhìn đều được tải trước — 50 lượt
+tải phí). File payload RSC có thật trong `out/` (1356 file `.txt`).
+
+Nhưng **không kiểm được nó có chạy không**:
+
+| Đo | Kết quả |
+| --- | --- |
+| `document.visibilityState` | `"hidden"` |
+| `IntersectionObserver` trên link đang ở giữa màn hình | callback **không hề được gọi** |
+| Số request `.txt` sau khi tìm | **0** |
+| Hover thủ công lên link | vẫn 0 |
+
+Prefetch của Next kích hoạt theo tầm nhìn (`IntersectionObserver`), mà pane trình
+duyệt trong phiên này không hiển thị nên trang ở trạng thái `hidden` và
+`IntersectionObserver` không báo gì hết. **Đây là giới hạn của môi trường kiểm,
+không phải bằng chứng code sai** — nhưng cũng không phải bằng chứng code đúng.
+
+**Phase 6 phải kiểm lại mục này bằng Playwright trên browser thật.**
+
+#### 🔎 Đã kiểm tay trên bản export tĩnh
+
+| Việc kiểm | Kết quả |
+| --- | --- |
+| `/` ở trang chi tiết | overlay mở, ô nhập được focus, `fuse` + index **mới** tải lúc này |
+| Gõ `getByRole` trong overlay | 8 kết quả |
+| `↓ ↓ ↑` | getByRole → getByText → getByTestId → getByText |
+| `Enter` | điều hướng tới `/locators/get-by-text/`, hộp đóng, ghi `"getByRole"` vào lịch sử |
+| `?` | bảng phím tắt hiện đủ 7 dòng |
+| Nút ghim | `☆Ghim` → `★Đã ghim`, localStorage lưu `{c,i,t}` |
+| Mở lại overlay | mục "ĐÃ GHIM" và "TÌM GẦN ĐÂY" hiện đúng |
+| Trang `/cli/` | nút "Chép cả 20 đoạn code" |
+| Trang chủ: `/` và `Ctrl+K` | focus ô search, **không** mở overlay |
+
+> **Lưu ý cho Phase 6:** gõ vào ô input qua công cụ tự động phải dùng native
+> value setter rồi bắn `input` event — gán thẳng `.value` thì React không thấy.
+> Và bấm nhiều lần liên tiếp trong cùng một tick sẽ bị React gộp render, phải
+> chừa khoảng nghỉ giữa các lần bấm.
 
 ### Phase 5 — Chất lượng & SEO
 
@@ -722,5 +1128,5 @@ Những thứ nhìn mắt không thấy được:
 ## 12. Bước kế tiếp
 
 1. ✅ ~~Xác nhận stack~~ — **đã chốt Next.js** (2026-08-25)
-2. Bắt đầu **Phase 0**
+2. ✅ ~~Phase 0~~ · ✅ ~~Phase 1~~ · ✅ ~~Phase 2~~ — **đang ở Phase 3: giao diện**
 3. Cập nhật tiến độ bằng cách tick `[x]` trực tiếp trong file này
