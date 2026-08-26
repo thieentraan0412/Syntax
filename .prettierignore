@@ -10,3 +10,8 @@ next-env.d.ts
 # tài liệu viết tay — bảng đã căn thủ công, đừng để Prettier sắp lại
 implement.md
 guild.txt
+
+# file do script sinh — generator giữ quyền quyết định định dạng,
+# Prettier căn lại thì lượt data:index sau lại đạp về, sinh diff vô nghĩa
+public/search-index.json
+data/candidates.json

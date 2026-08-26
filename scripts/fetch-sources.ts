@@ -12,7 +12,7 @@
  *
  * Chạy: node scripts/fetch-sources.ts
  */
-import { mkdir, writeFile, readFile, access } from "node:fs/promises";
+import { mkdir, writeFile, access } from "node:fs/promises";
 import { join } from "node:path";
 
 /** Bản Playwright tham chiếu của cheatsheet. Đổi ở đây rồi chạy lại toàn bộ pipeline. */

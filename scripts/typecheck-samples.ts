@@ -130,6 +130,21 @@ function fileNameFor(e: CheatEntry, i: number): string {
 }
 
 async function main() {
+  // `paths` bên dưới chỉ là GỢI Ý: trỏ vào file không có thật thì TypeScript
+  // lặng lẽ rơi về node_modules và vẫn báo "sạch" — nhưng là sạch với bản
+  // Playwright đang cài, không phải bản pipeline đã ghim. Kết quả xanh mà vô
+  // nghĩa là kiểu sai tệ nhất, nên chặn ngay từ đây thay vì để nó lọt.
+  const thieuType = [join(CACHE_TYPES, "pw-test.d.ts"), join(CACHE_TYPES, "pw.d.ts")].filter(
+    (f) => !existsSync(f),
+  );
+  if (thieuType.length > 0) {
+    console.error(`✗ thiếu type đã ghim: ${thieuType.join(", ")}`);
+    console.error("  Thiếu file này thì tsc rơi về node_modules — kiểm xong cũng không tin được.");
+    console.error("  Chạy `npm run data:fetch` để tải về rồi thử lại.");
+    process.exitCode = 1;
+    return;
+  }
+
   // Entry CLI chứa lệnh shell, không phải TypeScript — không có gì để biên dịch.
   const tsEntries = entries.filter((e) => e.codeLang === "ts");
   const skipped = entries.length - tsEntries.length;
@@ -153,6 +168,7 @@ async function main() {
     `→ ghép ${files.length} đoạn code vào ${TMP}/  ` +
       `(bỏ qua ${skipped} đoạn shell· ${stubs} stub import minh hoạ)`,
   );
+  console.log(`→ type ghim: ${CACHE_TYPES}/pw-test.d.ts + ${CACHE_TYPES}/pw.d.ts`);
 
   // Type lấy thẳng từ .cache — cùng bản Playwright mà pipeline đã ghim, nên code
   // mẫu được kiểm với đúng API của bản đó, không phụ thuộc node_modules đang cài

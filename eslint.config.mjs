@@ -12,6 +12,13 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+
+    // Thư mục do script/công cụ sinh — cùng danh sách với .prettierignore.
+    // `.cache` chứa pw.d.ts + pw-test.d.ts tải từ Playwright: 1,5 MB type của
+    // người khác, lint vào là 504 lỗi không liên quan gì tới code của mình.
+    ".cache/**",
+    "test-results/**",
+    "playwright-report/**",
   ]),
 ]);
 

@@ -10,7 +10,7 @@
     "build": "npm run data:index && next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "data:fetch": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/fetch-sources.ts",
@@ -25,17 +25,22 @@
     "search:bench": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/benchmark-search.ts"
   },
   "dependencies": {
+    "fuse.js": "^7.5.0",
     "next": "16.3.2",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "shiki": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.2",
+    "prettier": "^3.9.6",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

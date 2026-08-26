@@ -63,7 +63,7 @@ export type UseSearchOptions = {
 export function useSearch(options: UseSearchOptions = {}): UseSearchResult {
   const { limit = 50, eager = false, fetchImpl } = options;
 
-  const [query, setQuery] = useState("");
+  const [query, setQueryState] = useState("");
   const [debounced, setDebounced] = useState("");
   const [category, setCategory] = useState<Category | null>(null);
   const [engine, setEngine] = useState<SearchEngine | null>(null);
@@ -72,6 +72,17 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchResult {
 
   /** Chặn tải trùng khi vừa focus vừa gõ. */
   const requested = useRef(false);
+
+  /**
+   * Xoá trắng thì hạ `debounced` ngay trong chính lượt gõ phím, không đẩy sang
+   * effect: React tính setState đồng bộ trong effect là một lượt render thừa
+   * (rule react-hooks/set-state-in-effect), mà ở đây không cần effect thật —
+   * đây là thứ suy ra được ngay tại nguồn thay đổi.
+   */
+  const setQuery = useCallback((next: string) => {
+    setQueryState(next);
+    if (next === "") setDebounced("");
+  }, []);
 
   const warmUp = useCallback(() => {
     if (requested.current) return;
@@ -102,11 +113,8 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchResult {
   }, [query, warmUp]);
 
   useEffect(() => {
-    if (query === "") {
-      // Xoá trắng thì trả kết quả ngay, không bắt chờ thêm 120ms.
-      setDebounced("");
-      return;
-    }
+    // Xoá trắng đã xử lý ngay ở setQuery/clear — kết quả về tức thì, không chờ 120ms.
+    if (query === "") return;
     const id = setTimeout(() => setDebounced(query), DEBOUNCE_MS);
     return () => clearTimeout(id);
   }, [query]);
@@ -128,7 +136,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchResult {
   );
 
   const clear = useCallback(() => {
-    setQuery("");
+    setQueryState("");
     setDebounced("");
     setCategory(null);
   }, []);
