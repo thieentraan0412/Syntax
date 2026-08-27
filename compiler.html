@@ -1,0 +1,1491 @@
+<title>Playwright online trên Vercel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+
+<style>
+  /* ───────────────────────────────────────────────────────────────
+     Token — kế thừa nguyên bảng màu của app/globals.css.
+     Ba trạng thái theme giống hệt dự án: :root sáng, prefers-color-scheme
+     cho người chưa chọn tay, [data-theme] cho người chọn tay.
+     Ba màu ngữ nghĩa thêm vào (accent / warn / stop) vì tài liệu này về
+     bản chất là một bản phán quyết: giữ được — rủi ro — chặn cứng.
+     ─────────────────────────────────────────────────────────────── */
+  :root {
+    --bg: #ffffff;
+    --surface: #f6f7f8;
+    --surface-2: #eceef0;
+    --border: #e2e5e8;
+    --border-strong: #ccd2d8;
+    --fg: #16191d;
+    --muted: #5b636d;
+    --accent: #178620;
+    --accent-soft: rgba(23, 134, 32, 0.10);
+    --accent-line: rgba(23, 134, 32, 0.35);
+    --warn: #8a5406;
+    --warn-soft: rgba(138, 84, 6, 0.10);
+    --warn-line: rgba(138, 84, 6, 0.32);
+    --stop: #b42318;
+    --stop-soft: rgba(180, 35, 24, 0.09);
+    --stop-line: rgba(180, 35, 24, 0.32);
+    --ring: #2ead33;
+    --shadow: 0 1px 2px rgba(16, 24, 32, 0.04), 0 8px 24px -16px rgba(16, 24, 32, 0.18);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c0e11;
+      --surface: #14171b;
+      --surface-2: #1c2026;
+      --border: #272c33;
+      --border-strong: #3a424c;
+      --fg: #e7eaee;
+      --muted: #98a1ab;
+      --accent: #4ecf55;
+      --accent-soft: rgba(78, 207, 85, 0.13);
+      --accent-line: rgba(78, 207, 85, 0.40);
+      --warn: #e0b341;
+      --warn-soft: rgba(224, 179, 65, 0.13);
+      --warn-line: rgba(224, 179, 65, 0.38);
+      --stop: #f2796d;
+      --stop-soft: rgba(242, 121, 109, 0.13);
+      --stop-line: rgba(242, 121, 109, 0.38);
+      --ring: #4ecf55;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -16px rgba(0, 0, 0, 0.8);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0c0e11;
+    --surface: #14171b;
+    --surface-2: #1c2026;
+    --border: #272c33;
+    --border-strong: #3a424c;
+    --fg: #e7eaee;
+    --muted: #98a1ab;
+    --accent: #4ecf55;
+    --accent-soft: rgba(78, 207, 85, 0.13);
+    --accent-line: rgba(78, 207, 85, 0.40);
+    --warn: #e0b341;
+    --warn-soft: rgba(224, 179, 65, 0.13);
+    --warn-line: rgba(224, 179, 65, 0.38);
+    --stop: #f2796d;
+    --stop-soft: rgba(242, 121, 109, 0.13);
+    --stop-line: rgba(242, 121, 109, 0.38);
+    --ring: #4ecf55;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -16px rgba(0, 0, 0, 0.8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+  }
+
+  .mono {
+    font-family: "Geist Mono", ui-monospace, "SF Mono", "Cascadia Mono", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Khung trang ─────────────────────────────────────────────── */
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 28px 96px;
+  }
+
+  .prose { max-width: 68ch; }
+
+  /* ── Thanh điều hướng ────────────────────────────────────────── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 11px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+
+  .nav-inner a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    padding: 3px 0;
+    border-bottom: 1.5px solid transparent;
+    transition: color 0.14s, border-color 0.14s;
+  }
+  .nav-inner a:hover { color: var(--fg); border-bottom-color: var(--accent-line); }
+  .nav-inner a:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; border-radius: 2px; }
+
+  .nav-tag {
+    margin-left: auto;
+    font-size: 11px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+    padding-left: 20px;
+  }
+
+  /* ── Mở đầu ──────────────────────────────────────────────────── */
+  header.hero { padding: 60px 0 8px; }
+
+  .eyebrow {
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    margin: 0 0 18px;
+  }
+
+  h1 {
+    font-size: clamp(34px, 5.2vw, 52px);
+    line-height: 1.08;
+    letter-spacing: -0.028em;
+    font-weight: 700;
+    margin: 0 0 22px;
+    text-wrap: balance;
+    max-width: 19ch;
+  }
+
+  .lede {
+    font-size: 18.5px;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 62ch;
+    margin: 0 0 40px;
+  }
+  .lede strong { color: var(--fg); font-weight: 600; }
+
+  /* ── Bảng phán quyết đầu trang ───────────────────────────────── */
+  .verdict {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .verdict > div {
+    background: var(--bg);
+    padding: 20px 22px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .verdict dt {
+    font-size: 11px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .verdict dd {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 650;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+
+  .verdict dd.stop { color: var(--stop); }
+  .verdict dd.warn { color: var(--warn); }
+  .verdict dd.ok   { color: var(--accent); }
+
+  .verdict p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .meta-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin: 26px 0 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .meta-line span::before { content: "·"; margin-right: 9px; opacity: 0.55; }
+  .meta-line span:first-child::before { content: none; }
+
+  /* ── Mục ─────────────────────────────────────────────────────── */
+  section { padding-top: 76px; scroll-margin-top: 60px; }
+
+  .sec-label {
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 12px;
+  }
+
+  h2 {
+    font-size: clamp(24px, 3vw, 31px);
+    line-height: 1.2;
+    letter-spacing: -0.022em;
+    font-weight: 650;
+    margin: 0 0 16px;
+    text-wrap: balance;
+    max-width: 24ch;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.008em;
+    margin: 0 0 7px;
+    text-wrap: balance;
+  }
+
+  p { margin: 0 0 18px; }
+  .prose > p:last-child { margin-bottom: 0; }
+
+  code {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 0.885em;
+    background: var(--surface-2);
+    border-radius: 4px;
+    padding: 0.1em 0.36em;
+  }
+
+  a.ref { color: var(--accent); text-decoration-color: var(--accent-line); text-underline-offset: 2px; }
+  a.ref:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 2px; }
+
+  /* ── Thẻ điểm chặn: vạch mức độ bên trái ─────────────────────── */
+  .findings {
+    display: grid;
+    gap: 14px;
+    margin-top: 30px;
+  }
+
+  .finding {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 20px 22px 21px;
+  }
+  .finding[data-level="stop"] { border-left-color: var(--stop); }
+  .finding[data-level="warn"] { border-left-color: var(--warn); }
+  .finding[data-level="ok"]   { border-left-color: var(--accent); }
+
+  .finding-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    margin-bottom: 10px;
+  }
+
+  .finding-id {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  .finding-head h3 { margin: 0; flex: 1 1 260px; }
+
+  .pill {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill.stop { background: var(--stop-soft); color: var(--stop); border: 1px solid var(--stop-line); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn-line); }
+  .pill.ok   { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-line); }
+
+  .finding p { margin: 0 0 12px; font-size: 14.5px; line-height: 1.62; max-width: 72ch; }
+  .finding p:last-child { margin-bottom: 0; }
+
+  /* Bằng chứng đo được — trình bày như một dòng output terminal */
+  .evidence {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: var(--muted);
+    overflow-x: auto;
+    white-space: pre;
+    margin: 0 0 12px;
+  }
+  .evidence b { color: var(--fg); font-weight: 500; }
+  .evidence i { color: var(--stop); font-style: normal; }
+
+  .fix {
+    border-top: 1px dashed var(--border-strong);
+    padding-top: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 72ch;
+  }
+  .fix b {
+    color: var(--fg);
+    font-weight: 600;
+    display: block;
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  /* ── Sổ điểm 10 phase, trình bày như một bản test report ─────── */
+  .ledger {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 8px 0;
+    margin-top: 28px;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 13px;
+    overflow-x: auto;
+  }
+
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 34px 78px minmax(180px, 1fr) minmax(210px, 1.2fr);
+    align-items: baseline;
+    gap: 12px;
+    padding: 7px 20px;
+    min-width: 660px;
+  }
+  .ledger-row + .ledger-row { border-top: 1px solid var(--border); }
+
+  .ledger-mark { font-weight: 600; }
+  .ledger-row[data-r="pass"] .ledger-mark { color: var(--accent); }
+  .ledger-row[data-r="warn"] .ledger-mark { color: var(--warn); }
+  .ledger-row[data-r="fail"] .ledger-mark { color: var(--stop); }
+
+  .ledger-ph { color: var(--muted); font-size: 12px; }
+  .ledger-name { color: var(--fg); }
+  .ledger-note { color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+  .ledger-sum {
+    padding: 12px 20px 8px;
+    margin-top: 4px;
+    border-top: 1px solid var(--border-strong);
+    font-size: 12.5px;
+    color: var(--muted);
+    min-width: 660px;
+  }
+  .ledger-sum b { font-weight: 500; }
+  .ledger-sum .p { color: var(--accent); }
+  .ledger-sum .w { color: var(--warn); }
+  .ledger-sum .f { color: var(--stop); }
+
+  /* ── Bảng ────────────────────────────────────────────────────── */
+  .table-scroll { overflow-x: auto; margin-top: 26px; border: 1px solid var(--border); border-radius: 8px; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 620px; }
+
+  th {
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 12px 16px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  tr:last-child td { border-bottom: none; }
+  td b { font-weight: 600; }
+  td .sub { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  td.num { font-family: "Geist Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ── Sơ đồ kiến trúc ─────────────────────────────────────────── */
+  .arch {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin-top: 28px;
+  }
+
+  .node {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 16px 18px 17px;
+  }
+  .node[data-tone="run"] { border-color: var(--accent-line); background: var(--accent-soft); }
+
+  .node-label {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 6px;
+  }
+  .node h3 { font-size: 15px; margin-bottom: 5px; }
+  .node p { font-size: 13px; line-height: 1.55; color: var(--muted); margin: 0; }
+  .node ul { margin: 8px 0 0; padding-left: 16px; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+  .node li { margin-bottom: 3px; }
+
+  /* ── Checklist ───────────────────────────────────────────────── */
+  .stage { margin-top: 34px; }
+
+  .stage-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-strong);
+    margin-bottom: 4px;
+  }
+
+  .stage-num {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .stage-head h3 { margin: 0; font-size: 17px; flex: 0 1 auto; }
+
+  .stage-when {
+    margin-left: auto;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .stage-why {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 8px 0 12px;
+    max-width: 74ch;
+  }
+
+  ul.check { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+
+  ul.check li { position: relative; }
+
+  ul.check label {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 12px;
+    align-items: start;
+    padding: 9px 12px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  ul.check label:hover { background: var(--surface); }
+
+  ul.check input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 17px;
+    height: 17px;
+    margin: 3px 0 0;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 4.5px;
+    background: var(--bg);
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+    flex: none;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  ul.check input::after {
+    content: "";
+    width: 9px;
+    height: 5px;
+    border-left: 2px solid var(--bg);
+    border-bottom: 2px solid var(--bg);
+    transform: rotate(-45deg) translate(1px, -1px);
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+  ul.check input:checked { background: var(--accent); border-color: var(--accent); }
+  ul.check input:checked::after { opacity: 1; }
+  ul.check input:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+  .task { font-size: 14.5px; line-height: 1.55; }
+  .task .note { display: block; color: var(--muted); font-size: 13px; line-height: 1.55; margin-top: 3px; }
+  ul.check input:checked ~ .task { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--border-strong); }
+  ul.check input:checked ~ .task .note { text-decoration: none; }
+
+  .task .tag {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: 1.5px;
+    white-space: nowrap;
+  }
+  .task .tag.block { background: var(--stop-soft); color: var(--stop); border: 1px solid var(--stop-line); }
+  .task .tag.risk  { background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn-line); }
+  .task .tag.gate  { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-line); }
+
+  .progress {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 26px;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    font-size: 13.5px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .progress-bar { flex: 1 1 180px; height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; min-width: 140px; }
+  .progress-fill { height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width 0.25s ease; }
+  .progress-count { font-family: "Geist Mono", ui-monospace, monospace; color: var(--fg); font-weight: 500; white-space: nowrap; }
+  .progress button {
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 4px 11px;
+    cursor: pointer;
+  }
+  .progress button:hover { color: var(--fg); border-color: var(--fg); }
+  .progress button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+  /* ── Khối nhấn mạnh ──────────────────────────────────────────── */
+  .callout {
+    border: 1px solid var(--accent-line);
+    background: var(--accent-soft);
+    border-radius: 8px;
+    padding: 18px 22px 19px;
+    margin-top: 28px;
+    max-width: 74ch;
+  }
+  .callout p { margin: 0; font-size: 15px; line-height: 1.6; }
+  .callout p + p { margin-top: 10px; }
+  .callout .callout-label {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 7px;
+  }
+
+  footer {
+    margin-top: 84px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--muted);
+    max-width: 68ch;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 0 18px 72px; }
+    .nav-inner { padding: 11px 18px; }
+    header.hero { padding-top: 40px; }
+    .stage-when { margin-left: 0; flex-basis: 100%; }
+  }
+</style>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#ket-luan">Kết luận</a>
+    <a href="#so-diem">Sổ điểm</a>
+    <a href="#diem-chan">Điểm chặn</a>
+    <a href="#pham-vi">Phạm vi</a>
+    <a href="#giu-duoc">Giữ được</a>
+    <a href="#kien-truc">Kiến trúc sửa</a>
+    <a href="#checklist">Checklist</a>
+    <span class="nav-tag">Đánh giá · compiler.md</span>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Đánh giá kế hoạch · compiler.md</p>
+    <h1>Playwright online trên Vercel</h1>
+    <p class="lede">
+      Kế hoạch đọc trôi chảy và thứ tự triển khai rất tốt. Nhưng nó dựng trên một giả định
+      không đúng với repo này và không đúng với Vercel: rằng <strong>Playwright thật chạy được
+      trong một serverless function</strong>. Chromium đo trên chính máy này là
+      <strong>428&nbsp;MB</strong>; trần bundle của Vercel là <strong>250&nbsp;MB</strong>.
+      Phase 1 hỏng từ bước 5.
+    </p>
+
+    <dl class="verdict">
+      <div>
+        <dt>Phán quyết</dt>
+        <dd class="stop">Không chạy được như viết</dd>
+        <p>Bốn điểm chặn cứng, không cái nào vá được bằng cách sửa code.</p>
+      </div>
+      <div>
+        <dt>Phần giữ nguyên được</dt>
+        <dd class="ok">Khoảng 70%</dd>
+        <p>Toàn bộ UI, schema DB, thứ tự 20 bước và roadmap vẫn dùng tốt.</p>
+      </div>
+      <div>
+        <dt>Việc phải làm trước</dt>
+        <dd class="warn">Đảo Phase 9 lên trước</dd>
+        <p>Runner container phải có từ ngày đầu, không phải để dành cứu hoả.</p>
+      </div>
+    </dl>
+
+    <p class="meta-line">
+      <span>Đánh giá ngày 27-08-2026</span>
+      <span>Nguồn: compiler.md, 535 dòng</span>
+      <span>Đối chiếu: next.config.ts · package.json · implement.md</span>
+      <span>Playwright v1.62.1</span>
+    </p>
+  </header>
+
+  <section id="ket-luan">
+    <p class="sec-label">01 — Kết luận</p>
+    <h2>Đúng sản phẩm, sai chỗ đặt runner</h2>
+    <div class="prose">
+      <p>
+        Kế hoạch mô tả một sản phẩm hợp lý: người dùng viết test trong trình duyệt, bấm RUN,
+        xem log và artifact. Không có gì viển vông ở tầng sản phẩm. Vấn đề nằm gọn ở một dòng
+        trong sơ đồ kiến trúc — dòng <code>Vercel → API Route → Playwright → Chromium</code>.
+      </p>
+      <p>
+        Ba mắt xích cuối không tồn tại trên Vercel. Repo lại còn đang ở chế độ
+        <code>output: "export"</code>, nghĩa là <em>không có</em> API Route nào được sinh ra
+        cả — mắt xích thứ hai cũng đứt. Kế hoạch đã lường trước tình huống này, nhưng xếp nó
+        vào Phase 5 (&ldquo;nếu Vercel không đủ&rdquo;). Thực tế nó xảy ra ở Phase 1, bước 6.
+      </p>
+      <p>
+        Cách sửa không phải viết lại kế hoạch. Chỉ cần <strong>đảo thứ tự</strong>: coi
+        Playwright Worker chạy trong container là hạ tầng nền của MVP chứ không phải phương án
+        cứu hoả, còn Vercel giữ đúng việc nó làm giỏi — phục vụ UI và một API mỏng đứng ra
+        chuyển tiếp. Mọi thứ còn lại trong compiler.md giữ nguyên.
+      </p>
+    </div>
+  </section>
+
+  <section id="so-diem">
+    <p class="sec-label">02 — Sổ điểm</p>
+    <h2>Mười phase, chấm như một bản test report</h2>
+    <div class="prose">
+      <p>
+        Từng phase trong roadmap của compiler.md, chấm theo tiêu chí duy nhất: chạy được
+        <em>trên repo và hạ tầng đang có</em> hay không.
+      </p>
+    </div>
+
+    <div class="ledger">
+      <div class="ledger-row" data-r="fail">
+        <span class="ledger-mark">✗</span>
+        <span class="ledger-ph">Phase 1</span>
+        <span class="ledger-name">Next.js + Monaco + Playwright</span>
+        <span class="ledger-note">UI xong được. Bước &ldquo;chạy Chromium&rdquo; hỏng — xem C-1, C-2, C-3.</span>
+      </div>
+      <div class="ledger-row" data-r="pass">
+        <span class="ledger-mark">✓</span>
+        <span class="ledger-ph">Phase 2</span>
+        <span class="ledger-name">Console + Test Result</span>
+        <span class="ledger-note">Thuần frontend. Làm được ngay, kể cả khi runner còn là hàng giả lập.</span>
+      </div>
+      <div class="ledger-row" data-r="warn">
+        <span class="ledger-mark">!</span>
+        <span class="ledger-ph">Phase 3</span>
+        <span class="ledger-name">Screenshot + Video + Trace</span>
+        <span class="ledger-note">Cần lưu trữ ngoài từ ngày đầu; <code>/tmp</code> của serverless bay sau mỗi lần gọi.</span>
+      </div>
+      <div class="ledger-row" data-r="warn">
+        <span class="ledger-mark">!</span>
+        <span class="ledger-ph">Phase 4</span>
+        <span class="ledger-name">Database + Project + Test Case</span>
+        <span class="ledger-note">Schema đúng. Nhưng &ldquo;có thể dùng sau này&rdquo; là quá muộn — Phase 3 đã cần.</span>
+      </div>
+      <div class="ledger-row" data-r="warn">
+        <span class="ledger-mark">!</span>
+        <span class="ledger-ph">Phase 5</span>
+        <span class="ledger-name">Realtime log</span>
+        <span class="ledger-note">WebSocket không sống trên Vercel function. Chỉ còn SSE, và bị trần thời lượng chặn.</span>
+      </div>
+      <div class="ledger-row" data-r="warn">
+        <span class="ledger-mark">!</span>
+        <span class="ledger-ph">Phase 6</span>
+        <span class="ledger-name">Chromium + Firefox + WebKit</span>
+        <span class="ledger-note">Thêm 507 MB binary. Trên container thì bình thường, trên serverless thì không.</span>
+      </div>
+      <div class="ledger-row" data-r="fail">
+        <span class="ledger-mark">✗</span>
+        <span class="ledger-ph">Phase 7</span>
+        <span class="ledger-name">Security + Sandbox</span>
+        <span class="ledger-note">Đứng sai chỗ trong roadmap. Đây là điều kiện để mở cho người lạ, không phải tính năng thêm sau.</span>
+      </div>
+      <div class="ledger-row" data-r="pass">
+        <span class="ledger-mark">✓</span>
+        <span class="ledger-ph">Phase 8</span>
+        <span class="ledger-name">Parallel execution</span>
+        <span class="ledger-note">Hợp lý, và tự nhiên có sẵn một khi runner đã nằm trong container.</span>
+      </div>
+      <div class="ledger-row" data-r="warn">
+        <span class="ledger-mark">!</span>
+        <span class="ledger-ph">Phase 9</span>
+        <span class="ledger-name">Docker Worker</span>
+        <span class="ledger-note">Nội dung đúng, vị trí sai. Phải là Phase 1.5, không phải Phase 9.</span>
+      </div>
+      <div class="ledger-row" data-r="pass">
+        <span class="ledger-mark">✓</span>
+        <span class="ledger-ph">Phase 10</span>
+        <span class="ledger-name">Redis + BullMQ + Workers</span>
+        <span class="ledger-note">Để cuối là đúng. Nhận định &ldquo;chưa cần ở MVP&rdquo; hoàn toàn chính xác.</span>
+      </div>
+      <div class="ledger-sum">
+        <b><span class="p">3 đạt</span> · <span class="w">5 phải sửa</span> · <span class="f">2 hỏng</span></b>
+        &nbsp;—&nbsp; hai phase hỏng đều hỏng vì cùng một lý do: chỗ đặt runner.
+      </div>
+    </div>
+  </section>
+
+  <section id="diem-chan">
+    <p class="sec-label">03 — Điểm chặn</p>
+    <h2>Sáu chỗ vướng, bốn chỗ không vá được bằng code</h2>
+    <div class="prose">
+      <p>
+        Xếp theo mức độ. Bốn cái đầu chặn cứng: không có cách viết code nào đi vòng qua được,
+        phải đổi quyết định hạ tầng. Hai cái sau là rủi ro — làm được, nhưng phải biết trước
+        cái giá.
+      </p>
+    </div>
+
+    <div class="findings">
+
+      <article class="finding" data-level="stop">
+        <div class="finding-head">
+          <span class="finding-id">C-1</span>
+          <h3>Repo đang là static export — không có API Route nào được sinh ra</h3>
+          <span class="pill stop">Chặn cứng</span>
+        </div>
+        <p>
+          Kế hoạch đặt <code>POST /api/playwright/run</code> làm trục chính. Nhưng
+          <code>next.config.ts</code> khai <code>output: "export"</code>, tức là
+          <code>next build</code> chỉ nhả HTML tĩnh. Route Handler không được đóng gói, không
+          có function nào chạy. Đây không phải lỗi cấu hình — đó là lựa chọn có chủ ý của dự án.
+        </p>
+        <div class="evidence"><b>next.config.ts:6</b>
+  output: "export",     <i>&lt;- chặn toàn bộ app/api/**</i>
+  images: { unoptimized: true },
+  trailingSlash: true,</div>
+        <p>
+          Bỏ <code>output: "export"</code> thì mất ba thứ mà <code>implement.md</code> ghi là
+          tiêu chí thành công: chạy offline, deploy được lên bất kỳ CDN nào, và không cần
+          backend. Đó là đánh đổi ở tầm sản phẩm, không phải một dòng config.
+        </p>
+        <div class="fix">
+          <b>Cách xử lý</b>
+          Giữ nguyên site tĩnh. Dựng playground thành một deploy riêng có server
+          (<code>app.tên-miền</code>), hoặc gọi thẳng runner qua CORS từ trang tĩnh. Cheatsheet
+          341 trang không mất một byte nào và vẫn deploy được lên GitHub Pages.
+        </div>
+      </article>
+
+      <article class="finding" data-level="stop">
+        <div class="finding-head">
+          <span class="finding-id">C-2</span>
+          <h3>Binary trình duyệt lớn hơn trần bundle của Vercel</h3>
+          <span class="pill stop">Chặn cứng</span>
+        </div>
+        <p>
+          Đây là con số kết thúc tranh luận. Trần bundle serverless của Vercel là
+          <b>250&nbsp;MB sau giải nén</b>. Dưới đây là kích thước thật của bộ trình duyệt
+          Playwright v1.62.1 đo trên chính máy này:
+        </p>
+        <div class="evidence"><b>du -sh ~/AppData/Local/ms-playwright/*</b>
+  428M   chromium-1234                  <i>vượt 1,7x</i>
+  272M   chromium_headless_shell-1234   <i>vượt 1,1x</i>
+  337M   firefox-1538
+  170M   webkit-2336
+  ----
+  2,6G   tổng thư mục</div>
+        <p>
+          Ngay cả bản headless shell — bản nhẹ nhất, đã lược bỏ giao diện — vẫn vượt trần.
+          Không có cờ build nào, không có tinh chỉnh bundler nào thay đổi được điều đó.
+        </p>
+        <div class="fix">
+          <b>Cách xử lý</b>
+          Trên serverless chỉ còn <code>@sparticuz/chromium</code> (~50&nbsp;MB nén brotli,
+          giải vào <code>/tmp</code> lúc chạy) ghép với <code>playwright-core</code>. Nhưng nó
+          <em>chỉ</em> cho API trình duyệt trần, không kèm test runner — xem C-3. Trong
+          container thì vấn đề biến mất: image chính thức
+          <code>mcr.microsoft.com/playwright</code> đã có sẵn cả ba trình duyệt.
+        </div>
+      </article>
+
+      <article class="finding" data-level="stop">
+        <div class="finding-head">
+          <span class="finding-id">C-3</span>
+          <h3>Test runner cần spawn tiến trình và một đĩa ghi được</h3>
+          <span class="pill stop">Chặn cứng</span>
+        </div>
+        <p>
+          Kế hoạch mô tả đúng những gì backend phải làm: &ldquo;tạo file
+          <code>test.spec.ts</code> tạm thời, chạy Playwright, thu stdout/stderr&rdquo;. Trên
+          serverless, mỗi bước đều vướng một thứ khác nhau.
+        </p>
+        <div class="evidence"><b>Chuỗi phụ thuộc của: npx playwright test</b>
+  ghi file .spec.ts   -&gt;  FS chỉ ghi được /tmp, và bay sau mỗi lần gọi
+  đọc config          -&gt;  playwright.config.ts phải nằm sẵn trong bundle
+  spawn tiến trình    -&gt;  runner chạy worker riêng qua child_process
+  tìm binary          -&gt;  dò ~/.cache/ms-playwright — không tồn tại
+  ghi test-results/   -&gt;  cũng chỉ /tmp, cũng bay theo</div>
+        <p>
+          Khoảng cách giữa <code>playwright-core</code> (thư viện điều khiển trình duyệt, chạy
+          được trên serverless) và <code>@playwright/test</code> (test runner với
+          <code>test()</code>, <code>expect()</code>, trace, HTML report — thứ kế hoạch cần)
+          nằm đúng ở đây. Code mẫu trong compiler.md dùng cú pháp của cái thứ hai.
+        </p>
+        <div class="fix">
+          <b>Cách xử lý</b>
+          Container có đĩa ghi được và tiến trình sống lâu — chuỗi trên chạy y hệt như trên máy
+          dev. Đây mới là lý do thật sự để đảo Phase 9 lên đầu, chứ không phải chuyện hiệu năng.
+        </div>
+      </article>
+
+      <article class="finding" data-level="stop">
+        <div class="finding-head">
+          <span class="finding-id">C-4</span>
+          <h3>Chạy code người lạ gửi lên chính là thực thi mã từ xa</h3>
+          <span class="pill stop">Chặn cứng</span>
+        </div>
+        <p>
+          Mục SECURITY của kế hoạch liệt kê <em>đúng</em> những thứ cần chặn: CPU, RAM, thời
+          gian, mạng, filesystem, tiến trình, biến môi trường. Nhưng nó không nói chặn
+          <em>bằng cách nào</em> — và đó mới là toàn bộ vấn đề.
+        </p>
+        <div class="evidence"><b>Những thứ trông như sandbox nhưng không phải</b>
+  vm / vm2              <i>không phải ranh giới bảo mật — tài liệu Node nói thẳng</i>
+  worker_threads        <i>cùng tiến trình, cùng quyền</i>
+  --frozen-intrinsics   <i>làm khó, không làm bất khả</i>
+  lọc chuỗi / regex     <i>thua trước một dòng eval lắt léo</i>
+
+<b>Ranh giới thật, nằm ở tầng nhân hệ điều hành</b>
+  container + gVisor / Firecracker, dùng một lần rồi huỷ
+  hoặc thuê sẵn: E2B, Cloudflare Sandbox SDK, Daytona</div>
+        <p>
+          Một test Playwright còn có thể <code>page.goto()</code> tới bất cứ đâu. Không chặn
+          đường mạng ra thì runner thành bàn đạp quét cổng nội bộ và tấn công SSRF — và địa chỉ
+          IP bị chặn sẽ là của bạn.
+        </p>
+        <div class="fix">
+          <b>Cách xử lý</b>
+          Chuyển Phase 7 thành điều kiện phát hành: chừng nào chưa có sandbox thật thì
+          playground chỉ mở cho tài khoản đăng nhập theo danh sách mời. Mỗi lần chạy một
+          container mới, chặn mạng ra trừ danh sách trắng, huỷ ngay sau khi xong.
+        </div>
+      </article>
+
+      <article class="finding" data-level="warn">
+        <div class="finding-head">
+          <span class="finding-id">C-5</span>
+          <h3>Realtime log: WebSocket không sống trên serverless</h3>
+          <span class="pill warn">Rủi ro</span>
+        </div>
+        <p>
+          Giai đoạn 2 của kế hoạch ghi &ldquo;WebSocket / SSE&rdquo; như hai lựa chọn ngang
+          nhau. Chúng không ngang nhau: một Vercel function không giữ được kết nối WebSocket vì
+          nó không phải server chạy liên tục. SSE thì được — nhưng luồng SSE cũng đứt khi
+          function hết giờ.
+        </p>
+        <div class="fix">
+          <b>Cách xử lý</b>
+          Nếu runner đã nằm ở container thì mở WebSocket thẳng từ trình duyệt tới runner, Vercel
+          không dính vào đường truyền. Nếu vẫn muốn đi qua Vercel thì dùng SSE và chấp nhận trần
+          thời lượng ở C-6.
+        </div>
+      </article>
+
+      <article class="finding" data-level="warn">
+        <div class="finding-head">
+          <span class="finding-id">C-6</span>
+          <h3>Cộng dồn thời gian: khởi động nguội ăn gần hết ngân sách</h3>
+          <span class="pill warn">Rủi ro</span>
+        </div>
+        <p>
+          Ví dụ trong kế hoạch ghi <code>duration: 3210</code> — 3,2 giây cho một test. Con số
+          đó chỉ tính phần chạy test. Trên serverless còn phải cộng thêm:
+        </p>
+        <div class="evidence">  khởi động nguội function          1-3 s
+  giải nén chromium vào /tmp        2-5 s
+  khởi chạy trình duyệt             1-2 s
+  chạy test (theo kế hoạch)         3,2 s
+  ----------------------------------------
+  tổng                              7-13 s cho <b>một</b> test
+
+  trần maxDuration    Hobby 60 s · Pro 300 s   <i>xác minh lại số hiện hành</i></div>
+        <p>
+          Một test thì lọt. Một bộ test, hoặc nhiều người bấm RUN cùng lúc, thì không — và tiền
+          tính theo giây chạy chứ không theo lượt gọi.
+        </p>
+        <div class="fix">
+          <b>Cách xử lý</b>
+          Container giữ trình duyệt sẵn giữa các lần chạy: trả phí khởi động đúng một lần lúc
+          worker lên, không phải mỗi lần bấm RUN.
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section id="pham-vi">
+    <p class="sec-label">04 — Phạm vi</p>
+    <h2>Đây là sản phẩm thứ hai, không phải tính năng của cheatsheet</h2>
+    <div class="prose">
+      <p>
+        Điều này phải nói rõ trước khi bàn kỹ thuật. Repo tên
+        <code>playwright-cheatsheet</code>, và <code>implement.md</code> mục 2 liệt kê thẳng ba
+        thứ nằm <em>ngoài</em> phạm vi v1 — cả ba đều là nội dung chính của compiler.md.
+      </p>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Đối chiếu</th>
+            <th>Cheatsheet đang có</th>
+            <th>compiler.md đề xuất</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Việc của sản phẩm</b></td>
+            <td>Tra cứu cú pháp<span class="sub">Mở trang tới copy code dưới 5 giây</span></td>
+            <td>Chạy test thật<span class="sub">Một dịch vụ CI thu nhỏ</span></td>
+          </tr>
+          <tr>
+            <td><b>Hạ tầng</b></td>
+            <td>Tĩnh, không backend<span class="sub">Deploy được lên mọi CDN</span></td>
+            <td>Server, DB, storage, worker</td>
+          </tr>
+          <tr>
+            <td><b>Chi phí vận hành</b></td>
+            <td class="num">0 đ / tháng</td>
+            <td class="num">5-40 $ / tháng<span class="sub">Chưa tính lượt chạy</span></td>
+          </tr>
+          <tr>
+            <td><b>Bề mặt tấn công</b></td>
+            <td>Không có<span class="sub">Không nhận dữ liệu người dùng</span></td>
+            <td>Thực thi mã tuỳ ý<span class="sub">Xem C-4</span></td>
+          </tr>
+          <tr>
+            <td><b>Ngân sách JS trang</b></td>
+            <td class="num">15,5 KB<span class="sub">Trang chi tiết: 0 KB</span></td>
+            <td class="num">~2,2 MB<span class="sub">Riêng Monaco đã tự gói TypeScript</span></td>
+          </tr>
+          <tr>
+            <td><b>Người dùng</b></td>
+            <td>Ẩn danh, không tài khoản</td>
+            <td>Cần đăng nhập, project, lịch sử</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <p class="callout-label">Việc cần chốt trước</p>
+      <p>
+        Không phải &ldquo;làm hay không làm&rdquo;, mà là <b>nó sống ở đâu</b>. Hai đáp án đều
+        chấp nhận được, nhưng phải chọn một trước khi gõ dòng code đầu tiên: một repo thứ hai
+        với deploy riêng, hay đổi hướng repo này và chịu mất bốn tiêu chí thành công đang có.
+      </p>
+      <p>
+        Có một đáp án thứ ba, rẻ hơn hẳn: bản kế hoạch trước trong file này đã cân đúng hướng
+        &ldquo;runner từ xa&rdquo; của compiler.md, gọi tên là <b>hướng B</b> và xếp lại
+        <b>để v3</b> — vì với một trang cheatsheet, emulator chạy ngay trong trình duyệt trả lời
+        được gần hết các câu hỏi mà người học đến đây để hỏi, với chi phí vận hành bằng không.
+      </p>
+    </div>
+  </section>
+
+  <section id="giu-duoc">
+    <p class="sec-label">05 — Phần giữ được</p>
+    <h2>Kế hoạch đúng nhiều hơn sai, và đây là những chỗ đúng</h2>
+    <div class="prose">
+      <p>
+        Bốn điểm chặn ở trên đều nằm ở một tầng duy nhất — chỗ đặt runner. Phần còn lại của
+        compiler.md dùng lại được gần như nguyên vẹn, và có vài chỗ đáng khen thật.
+      </p>
+    </div>
+
+    <div class="findings">
+      <article class="finding" data-level="ok">
+        <div class="finding-head">
+          <span class="finding-id">G-1</span>
+          <h3>Thứ tự 20 bước triển khai là phần tốt nhất của tài liệu</h3>
+          <span class="pill ok">Giữ nguyên</span>
+        </div>
+        <p>
+          &ldquo;Không làm tất cả cùng lúc&rdquo; — rồi liệt kê từ tạo trang, cài editor, tới
+          nút RUN, tới API. Độ phức tạp tăng dần, mỗi bước kiểm chứng được, không nhảy cóc. Giữ
+          y nguyên trình tự này; checklist bên dưới chỉ chèn thêm chặng runner vào giữa.
+        </p>
+      </article>
+
+      <article class="finding" data-level="ok">
+        <div class="finding-head">
+          <span class="finding-id">G-2</span>
+          <h3>Chống được cám dỗ over-engineering</h3>
+          <span class="pill ok">Giữ nguyên</span>
+        </div>
+        <p>
+          Mục &ldquo;Kiến trúc MVP&rdquo; nói thẳng: chưa cần VPS, Redis, BullMQ, Kubernetes,
+          microservices. Đúng, và hiếm. Redis + BullMQ nằm ở Phase 10 là đúng chỗ — hàng đợi chỉ
+          có nghĩa khi đã có nhiều lượt chạy đồng thời để mà xếp hàng.
+        </p>
+      </article>
+
+      <article class="finding" data-level="ok">
+        <div class="finding-head">
+          <span class="finding-id">G-3</span>
+          <h3>Schema năm bảng đúng chuẩn ngay từ lần đầu</h3>
+          <span class="pill ok">Giữ nguyên</span>
+        </div>
+        <p>
+          <code>users → projects → test_cases → test_runs → artifacts</code>. Tách
+          <code>test_runs</code> khỏi <code>test_cases</code> là quyết định đúng — nó cho lịch sử
+          chạy mà không phải nhân bản test, và <code>artifacts</code> tách riêng cho phép dọn
+          file cũ mà không đụng tới kết quả.
+        </p>
+        <div class="fix">
+          <b>Sửa nhỏ</b>
+          Đẩy phần database lên sớm hơn. Kế hoạch xếp nó ở Phase 4, nhưng Phase 3 (screenshot,
+          video, trace) đã cần một chỗ để lưu và một cái id để tham chiếu.
+        </div>
+      </article>
+
+      <article class="finding" data-level="ok">
+        <div class="finding-head">
+          <span class="finding-id">G-4</span>
+          <h3>Đã đoán trúng vấn đề, chỉ đoán sai thời điểm</h3>
+          <span class="pill ok">Giữ nguyên</span>
+        </div>
+        <p>
+          Giai đoạn 5 liệt kê chính xác các triệu chứng sẽ gặp: timeout, giới hạn bộ nhớ,
+          &ldquo;Chromium resource problem&rdquo;, nhiều test chạy song song. Chẩn đoán đúng, và
+          phương án đưa ra (tách runner ra server riêng) cũng đúng. Việc duy nhất phải sửa là
+          thời điểm: những triệu chứng đó không đợi tới Phase 5, chúng xuất hiện ngay ở lần chạy
+          thử đầu tiên.
+        </p>
+      </article>
+
+      <article class="finding" data-level="warn">
+        <div class="finding-head">
+          <span class="finding-id">G-5</span>
+          <h3>Monaco Editor: cân nhắc lại một lần</h3>
+          <span class="pill warn">Xem lại</span>
+        </div>
+        <p>
+          Monaco tự đóng gói nguyên bộ TypeScript bên trong worker riêng của nó — khoảng
+          2,2&nbsp;MB cho thứ mà CodeMirror&nbsp;6 cộng một worker TypeScript dùng chung làm được
+          trong khoảng một nửa. Repo lại đã có sẵn <code>.cache/pw-test.d.ts</code> (1,47&nbsp;MB
+          type thật của v1.62.1) để nuôi autocomplete. Không phải lỗi, nhưng là chỗ đáng đo trước
+          khi cài.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section id="kien-truc">
+    <p class="sec-label">06 — Kiến trúc sửa</p>
+    <h2>Đổi đúng một mắt xích, phần còn lại đứng nguyên</h2>
+    <div class="prose">
+      <p>
+        Sơ đồ gốc là <code>User → Next.js → Vercel → API Route → Playwright → Chromium</code>.
+        Sơ đồ sửa chỉ cắt hai mắt xích cuối ra khỏi Vercel và đặt chúng vào nơi chúng chạy được.
+        Vercel vẫn giữ vai trò cũ, chỉ là thôi làm cái việc nó không làm được.
+      </p>
+    </div>
+
+    <div class="arch">
+      <div class="node">
+        <p class="node-label">Vùng 1 · giữ nguyên</p>
+        <h3>Vercel — UI và cửa vào</h3>
+        <p>Đúng phần Next.js mà kế hoạch mô tả, không bỏ gì.</p>
+        <ul>
+          <li>Trang playground, editor, console</li>
+          <li>Đăng nhập, project, lịch sử chạy</li>
+          <li>API mỏng: nhận code, xác thực, chuyển tiếp</li>
+          <li>Không bao giờ tự chạy Playwright</li>
+        </ul>
+      </div>
+      <div class="node" data-tone="run">
+        <p class="node-label">Vùng 2 · chỗ đổi</p>
+        <h3>Runner trong container</h3>
+        <p>Nơi duy nhất code người dùng chạy. Phase 9 kéo lên thành Phase 1.5.</p>
+        <ul>
+          <li>Image <code>mcr.microsoft.com/playwright</code></li>
+          <li><code>@playwright/test</code> đầy đủ, đĩa ghi được</li>
+          <li>Fly.io / Railway / Render / VPS — hoặc thuê sandbox</li>
+          <li>Container mới mỗi lần chạy, huỷ ngay sau đó</li>
+        </ul>
+      </div>
+      <div class="node">
+        <p class="node-label">Vùng 3 · thêm sớm hơn</p>
+        <h3>Lưu trữ và dữ liệu</h3>
+        <p>Kế hoạch xếp ở Phase 4; thực tế Phase 3 đã cần.</p>
+        <ul>
+          <li>R2 / S3 cho screenshot, video, trace</li>
+          <li>Postgres cho 5 bảng đã thiết kế</li>
+          <li>Link ký hạn giờ, không mở công khai</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p class="callout-label">Cái giá của việc đổi</p>
+      <p>
+        Khoảng <b>5-10 $/tháng</b> cho một container nhỏ, và thêm một thứ phải vận hành. Đổi lại:
+        Phase 1 chạy được thật, C-2 và C-3 biến mất hoàn toàn, C-4 có chỗ để giải quyết đàng
+        hoàng, C-5 và C-6 không còn là vấn đề — và không phải viết lại backend ở Phase 5.
+      </p>
+    </div>
+  </section>
+
+  <section id="checklist">
+    <p class="sec-label">07 — Checklist</p>
+    <h2>Mười chặng, theo thứ tự chạy được</h2>
+    <div class="prose">
+      <p>
+        Giữ nguyên tinh thần 20 bước của compiler.md, chèn thêm chặng runner vào giữa và kéo
+        bảo mật lên đúng chỗ. Ba nhãn cần đọc trước:
+        <span class="mono">CHẶN</span> là việc không xong thì chặng sau vô nghĩa,
+        <span class="mono">CỬA</span> là điều kiện bắt buộc trước khi mở cho người ngoài,
+        <span class="mono">RỦI RO</span> là chỗ dễ mất thời gian nhất.
+      </p>
+      <p>
+        Trạng thái tick được lưu trong trình duyệt này, không gửi đi đâu.
+      </p>
+    </div>
+
+    <div class="progress">
+      <span class="progress-count" id="pcount">0 / 0</span>
+      <span class="progress-bar"><span class="progress-fill" id="pfill"></span></span>
+      <button type="button" id="preset">Bỏ tick tất cả</button>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head">
+        <span class="stage-num">CHẶNG 0</span>
+        <h3>Chốt ba quyết định, chưa gõ code</h3>
+        <span class="stage-when">nửa ngày</span>
+      </div>
+      <p class="stage-why">
+        Cả ba đều là quyết định một chiều: chọn sai thì phát hiện ở tuần thứ ba và phải làm lại
+        từ đầu. Rẻ nhất là cãi nhau bây giờ.
+      </p>
+      <ul class="check">
+        <li><label><input type="checkbox" data-k="c0-1"><span class="task">Chốt: playground là repo riêng, hay đổi hướng repo cheatsheet này<span class="tag block">Chặn</span><span class="note">Nếu đổi hướng repo này thì viết rõ trong implement.md rằng bốn tiêu chí thành công ở mục 1 không còn hiệu lực.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c0-2"><span class="task">Chốt: chấp nhận chi phí ~5-10 $/tháng cho container runner<span class="tag block">Chặn</span><span class="note">Không có phương án 0 đồng nào chạy được Playwright thật. Nếu ngân sách phải là 0 thì quay lại hướng emulator.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c0-3"><span class="task">Chốt: playground mở công khai, hay chỉ cho danh sách mời<span class="tag block">Chặn</span><span class="note">Công khai thì Chặng 4 là bắt buộc trước khi phát hành. Danh sách mời thì hoãn được, nhưng phải ghi lại là nợ kỹ thuật.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c0-4"><span class="task">Đo Monaco so với CodeMirror 6 trước khi cài<span class="tag risk">Rủi ro</span><span class="note">Xem G-5. Repo đã có sẵn <code>.cache/pw-test.d.ts</code> để nuôi autocomplete cho cả hai.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c0-5"><span class="task">Viết một trang tóm tắt phạm vi v1 và dán vào repo<span class="note">Một đoạn: cái gì chạy được, cái gì không, ai được dùng. Sẽ tự cắt được nửa số tranh luận về sau.</span></span></label></li>
+      </ul>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head">
+        <span class="stage-num">CHẶNG 1</span>
+        <h3>Khung giao diện — chưa cần server</h3>
+        <span class="stage-when">2-3 ngày</span>
+      </div>
+      <p class="stage-why">
+        Đúng bước 1-4 trong thứ tự của compiler.md. Toàn bộ chặng này chạy được ngay trên repo
+        hiện tại, kể cả khi vẫn để <code>output: "export"</code> — vì chưa gọi backend nào.
+      </p>
+      <ul class="check">
+        <li><label><input type="checkbox" data-k="c1-1"><span class="task">Tạo route <code>/playground</code>, tách hẳn khỏi cây cheatsheet<span class="note">341 trang tĩnh hiện có phải không tăng thêm một byte JS nào.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c1-2"><span class="task">Cài editor đã chọn ở Chặng 0, tải lười, chỉ ở route này</span></label></li>
+        <li><label><input type="checkbox" data-k="c1-3"><span class="task">Nạp <code>.cache/pw-test.d.ts</code> để có autocomplete đúng v1.62.1</span></label></li>
+        <li><label><input type="checkbox" data-k="c1-4"><span class="task">Nút RUN, khung console, khung kết quả PASS/FAIL<span class="note">Nối vào một runner giả trả kết quả cứng. Mục đích là chốt hình dạng dữ liệu trước khi có backend thật.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c1-5"><span class="task">Chốt hợp đồng JSON giữa frontend và runner<span class="tag block">Chặn</span><span class="note">Có version. <code>{ status, duration, output, steps[], artifacts[] }</code> — rộng hơn ví dụ trong compiler.md, vì Chặng 5 sẽ cần chỗ cho artifact.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c1-6"><span class="task">Thêm kiểm tra ngân sách JS vào CI<span class="note">Chặn PR nếu trang cheatsheet phình ra. Playground có ngân sách riêng, rộng hơn.</span></span></label></li>
+      </ul>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head">
+        <span class="stage-num">CHẶNG 2</span>
+        <h3>Runner container — Phase 9 kéo lên đây</h3>
+        <span class="stage-when">2-4 ngày</span>
+      </div>
+      <p class="stage-why">
+        Đây là thay đổi lớn nhất so với compiler.md, và là thứ làm cho C-2 và C-3 biến mất.
+        Làm bây giờ tốn 2-4 ngày; làm ở Phase 5 như kế hoạch gốc thì tốn thêm cả phần backend
+        đã viết cho Vercel.
+      </p>
+      <ul class="check">
+        <li><label><input type="checkbox" data-k="c2-1"><span class="task">Dockerfile dựa trên <code>mcr.microsoft.com/playwright:v1.62.1</code><span class="note">Ghim đúng version đang dùng ở <code>package.json</code>. Image đã có sẵn cả ba trình duyệt — không phải tải gì thêm.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c2-2"><span class="task">Dịch vụ HTTP nhỏ trong container: nhận code, chạy, trả JSON<span class="note">Đúng hợp đồng đã chốt ở c1-5.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c2-3"><span class="task">Ghi <code>test.spec.ts</code> vào thư mục tạm, chạy <code>playwright test</code>, thu stdout/stderr<span class="note">Chính là các bước backend mà compiler.md mô tả — chỉ khác chỗ chạy.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c2-4"><span class="task">Timeout cứng phía runner, giết tiến trình con khi quá giờ<span class="note">30-60 giây. Không tin vào timeout của Playwright — nó nằm trong tiến trình có thể bị treo.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c2-5"><span class="task">Deploy runner, xác nhận chạy được một test thật từ máy dev<span class="tag gate">Cửa</span><span class="note">Đây là mốc chứng minh toàn bộ kiến trúc đứng vững. Chưa qua được mốc này thì đừng làm gì thêm.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c2-6"><span class="task">Đo thời gian thật của một lần chạy nguội và một lần chạy nóng<span class="note">Ghi số vào tài liệu. Đây là con số sẽ quyết định UX ở Chặng 7.</span></span></label></li>
+      </ul>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head">
+        <span class="stage-num">CHẶNG 3</span>
+        <h3>Nối giao diện với runner</h3>
+        <span class="stage-when">1-2 ngày</span>
+      </div>
+      <p class="stage-why">
+        Vercel chỉ đóng vai người gác cổng: xác thực, giới hạn tần suất, chuyển tiếp. Không có
+        Playwright nào chạy ở đây.
+      </p>
+      <ul class="check">
+        <li><label><input type="checkbox" data-k="c3-1"><span class="task">API chuyển tiếp: xác thực người gọi, chuyển sang runner, trả kết quả về<span class="note">Nếu giữ site tĩnh thì bước này nằm ở deploy riêng, hoặc gọi thẳng runner qua CORS.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c3-2"><span class="task">Khoá bí mật giữa API và runner<span class="tag gate">Cửa</span><span class="note">Runner không được nhận request từ Internet mở. Không có bước này thì bạn vừa dựng một máy chạy code miễn phí cho cả thế giới.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c3-3"><span class="task">Giới hạn tần suất theo người dùng và theo IP<span class="note">Đặt trước khi có người dùng thật, không phải sau khi hoá đơn về.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c3-4"><span class="task">Bỏ runner giả, nối console và bảng kết quả vào dữ liệu thật</span></label></li>
+        <li><label><input type="checkbox" data-k="c3-5"><span class="task">Hiển thị lỗi cho tử tế: quá giờ, runner chết, code sai cú pháp<span class="note">Ba trạng thái này chiếm phần lớn lần chạy đầu của người mới. Nói rõ sai gì và sửa thế nào.</span></span></label></li>
+      </ul>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head">
+        <span class="stage-num">CHẶNG 4</span>
+        <h3>Sandbox và giới hạn — Phase 7 kéo lên đây</h3>
+        <span class="stage-when">3-5 ngày</span>
+      </div>
+      <p class="stage-why">
+        Trong compiler.md đây là Phase 7. Nhưng nó không phải tính năng — nó là điều kiện để
+        chữ &ldquo;công khai&rdquo; có nghĩa. Nếu Chặng 0 chốt danh sách mời thì hoãn được,
+        nhưng phải hoãn một cách có ý thức.
+      </p>
+      <ul class="check">
+        <li><label><input type="checkbox" data-k="c4-1"><span class="task">Container dùng một lần: mỗi lần chạy một cái mới, xong huỷ<span class="tag gate">Cửa</span><span class="note">Không tái dùng. Không chia sẻ trạng thái giữa hai lần chạy của hai người khác nhau.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c4-2"><span class="task">Chặn mạng ra, chỉ mở theo danh sách trắng<span class="tag gate">Cửa</span><span class="note">Chặn dải IP nội bộ trước tiên — đây là đường tấn công SSRF ở C-4.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c4-3"><span class="task">Giới hạn CPU, RAM, số tiến trình, dung lượng đĩa<span class="note">Đúng danh sách mục SECURITY của compiler.md, nhưng đặt ở tầng container chứ không ở tầng Node.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c4-4"><span class="task">Runner chạy bằng user không phải root, không có biến môi trường nào của app<span class="note">Container chỉ biết đúng một khoá dùng để nói chuyện với API.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c4-5"><span class="task">Cân nhắc thuê sandbox thay vì tự dựng<span class="note">E2B, Cloudflare Sandbox SDK, Daytona. Tốn tiền hơn container trần, nhưng phần cách ly do người khác chịu trách nhiệm.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c4-6"><span class="task">Tự tấn công thử trước khi mở<span class="tag gate">Cửa</span><span class="note">Thử đọc <code>process.env</code>, thử <code>page.goto</code> vào IP nội bộ, thử vòng lặp vô hạn, thử ghi đầy đĩa. Ghi lại kết quả từng thử.</span></span></label></li>
+      </ul>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head">
+        <span class="stage-num">CHẶNG 5</span>
+        <h3>Screenshot, video, trace</h3>
+        <span class="stage-when">2-3 ngày</span>
+      </div>
+      <p class="stage-why">
+        Phase 3 của kế hoạch gốc, giữ nguyên nội dung. Chỉ thêm một điều kiện: phải có chỗ lưu
+        ngoài trước, vì đĩa của container biến mất cùng container.
+      </p>
+      <ul class="check">
+        <li><label><input type="checkbox" data-k="c5-1"><span class="task">Bật <code>screenshot</code>, <code>video</code>, <code>trace</code> ở chế độ <code>retain-on-failure</code><span class="note">Đúng như config trong compiler.md. Chế độ này giữ ổ đĩa và hoá đơn ở mức thấp.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c5-2"><span class="task">Đẩy artifact lên R2/S3 ngay khi test xong, trước khi huỷ container<span class="tag block">Chặn</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c5-3"><span class="task">Link ký có hạn giờ, không để bucket công khai</span></label></li>
+        <li><label><input type="checkbox" data-k="c5-4"><span class="task">Nút Xem ảnh / Xem video / Mở trace trong bảng kết quả</span></label></li>
+        <li><label><input type="checkbox" data-k="c5-5"><span class="task">Đặt hạn xoá tự động cho artifact<span class="tag risk">Rủi ro</span><span class="note">Video là thứ phình nhanh nhất trong toàn hệ thống. Đặt hạn 7 hoặc 30 ngày ngay từ ngày đầu, đừng đợi.</span></span></label></li>
+      </ul>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head">
+        <span class="stage-num">CHẶNG 6</span>
+        <h3>Database, project, lịch sử chạy</h3>
+        <span class="stage-when">3-4 ngày</span>
+      </div>
+      <p class="stage-why">
+        Schema năm bảng của compiler.md dùng nguyên. Thực tế Chặng 5 đã cần một phần của nó rồi
+        — nếu làm đúng thứ tự thì hai chặng này chồng lên nhau một chút.
+      </p>
+      <ul class="check">
+        <li><label><input type="checkbox" data-k="c6-1"><span class="task">Dựng 5 bảng: <code>users</code>, <code>projects</code>, <code>test_cases</code>, <code>test_runs</code>, <code>artifacts</code></span></label></li>
+        <li><label><input type="checkbox" data-k="c6-2"><span class="task">Đăng nhập<span class="note">Có tài khoản mới giới hạn được tần suất và truy được ai chạy cái gì.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c6-3"><span class="task">CRUD test case: tạo, đổi tên, xoá, nhân bản, chạy</span></label></li>
+        <li><label><input type="checkbox" data-k="c6-4"><span class="task">Trang lịch sử chạy, đúng bố cục Test Run #100 trong kế hoạch</span></label></li>
+        <li><label><input type="checkbox" data-k="c6-5"><span class="task">Mở lại kết quả cũ kèm artifact của lần chạy đó</span></label></li>
+      </ul>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head">
+        <span class="stage-num">CHẶNG 7</span>
+        <h3>Log chạy trực tiếp</h3>
+        <span class="stage-when">2-3 ngày</span>
+      </div>
+      <p class="stage-why">
+        Giai đoạn 2 của kế hoạch gốc. Đẩy xuống đây vì nó chỉ có nghĩa khi đã đo được lần chạy
+        thật kéo dài bao lâu — con số ghi ở c2-6.
+      </p>
+      <ul class="check">
+        <li><label><input type="checkbox" data-k="c7-1"><span class="task">Chọn đường truyền: WebSocket thẳng tới runner, hay SSE qua API<span class="note">Xem C-5. WebSocket thẳng đơn giản hơn nhiều, miễn là c3-2 đã khoá cổng runner lại.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c7-2"><span class="task">Runner phát từng bước ra ngoài thay vì chỉ trả kết quả cuối<span class="note">Reporter tuỳ biến của Playwright cho đúng dữ liệu này, khỏi phải phân tích stdout.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c7-3"><span class="task">Console cuộn theo thời gian thật, có dấu thời gian từng dòng</span></label></li>
+        <li><label><input type="checkbox" data-k="c7-4"><span class="task">Nối lại được khi mất kết nối giữa chừng<span class="tag risk">Rủi ro</span><span class="note">Không có bước này, mất mạng 2 giây là mất toàn bộ log của một lần chạy 40 giây.</span></span></label></li>
+      </ul>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head">
+        <span class="stage-num">CHẶNG 8</span>
+        <h3>Firefox và WebKit</h3>
+        <span class="stage-when">1 ngày</span>
+      </div>
+      <p class="stage-why">
+        Rẻ bất ngờ — image Playwright đã có sẵn cả ba. Đây là phần thưởng của việc đã chọn
+        container ở Chặng 2.
+      </p>
+      <ul class="check">
+        <li><label><input type="checkbox" data-k="c8-1"><span class="task">Thêm bộ chọn trình duyệt vào giao diện</span></label></li>
+        <li><label><input type="checkbox" data-k="c8-2"><span class="task">Truyền lựa chọn xuống cấu hình project của Playwright</span></label></li>
+        <li><label><input type="checkbox" data-k="c8-3"><span class="task">Hiển thị kết quả cạnh nhau khi chạy nhiều trình duyệt<span class="note">Đúng bố cục Chromium PASS / Firefox PASS / WebKit PASS trong kế hoạch.</span></span></label></li>
+      </ul>
+    </div>
+
+    <div class="stage">
+      <div class="stage-head">
+        <span class="stage-num">CHẶNG 9</span>
+        <h3>Hàng đợi và mở rộng</h3>
+        <span class="stage-when">khi có số liệu chứng minh cần</span>
+      </div>
+      <p class="stage-why">
+        Phase 8 và 10 của kế hoạch gốc, và nhận định &ldquo;chưa cần ở MVP&rdquo; là đúng. Chỉ
+        làm chặng này khi có biểu đồ cho thấy người dùng đang phải xếp hàng.
+      </p>
+      <ul class="check">
+        <li><label><input type="checkbox" data-k="c9-1"><span class="task">Đo trước: bao nhiêu lần chạy đồng thời, chờ trung bình bao lâu<span class="tag block">Chặn</span><span class="note">Không có số này thì mọi việc bên dưới là tối ưu hoá mù.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c9-2"><span class="task">Hàng đợi: Redis + BullMQ, đúng như kế hoạch<span class="note">Hoặc hàng đợi có sẵn của nhà cung cấp, nếu chỉ cần đúng chức năng xếp hàng.</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c9-3"><span class="task">Nhiều worker, tự co giãn theo độ dài hàng đợi</span></label></li>
+        <li><label><input type="checkbox" data-k="c9-4"><span class="task">Chạy song song nhiều test trong một lần bấm RUN</span></label></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      Đánh giá lập ngày 27-08-2026, đối chiếu với <code>compiler.md</code> (535 dòng),
+      <code>next.config.ts</code>, <code>package.json</code> và <code>implement.md</code>.
+      Số đo kích thước trình duyệt lấy từ <code>~/AppData/Local/ms-playwright</code> trên máy
+      dev, Playwright v1.62.1.
+    </p>
+    <p>
+      Trần bundle 250&nbsp;MB và trần <code>maxDuration</code> của Vercel là số tại thời điểm
+      viết — xác minh lại theo tài liệu hiện hành trước khi dùng làm căn cứ quyết định. Bản kế
+      hoạch emulator trước đó của file này vẫn còn giá trị như một phương án thứ ba, rẻ hơn;
+      xem mục 04.
+    </p>
+  </footer>
+
+</div>
+
+<script>
+  // Trạng thái tick sống trong trình duyệt người đọc, không rời khỏi máy.
+  // Mọi truy cập storage đều bọc try/catch: cửa sổ riêng tư, chặn site data,
+  // hoặc lúc chụp thumbnail đều có thể ném lỗi ngay ở dòng đọc.
+  (function () {
+    var KEY = "compiler-checklist-v1";
+    var boxes = Array.prototype.slice.call(document.querySelectorAll("ul.check input[data-k]"));
+    var fill = document.getElementById("pfill");
+    var count = document.getElementById("pcount");
+    var reset = document.getElementById("preset");
+
+    function load() {
+      try {
+        var raw = localStorage.getItem(KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function save(state) {
+      try {
+        localStorage.setItem(KEY, JSON.stringify(state));
+      } catch (e) {
+        /* không lưu được thì trang vẫn dùng bình thường */
+      }
+    }
+
+    function render() {
+      var done = boxes.filter(function (b) { return b.checked; }).length;
+      count.textContent = done + " / " + boxes.length;
+      fill.style.width = boxes.length ? (done / boxes.length) * 100 + "%" : "0%";
+    }
+
+    var state = load();
+    boxes.forEach(function (b) {
+      if (state[b.dataset.k]) b.checked = true;
+      b.addEventListener("change", function () {
+        var s = load();
+        if (b.checked) s[b.dataset.k] = 1;
+        else delete s[b.dataset.k];
+        save(s);
+        render();
+      });
+    });
+
+    reset.addEventListener("click", function () {
+      boxes.forEach(function (b) { b.checked = false; });
+      save({});
+      render();
+    });
+
+    render();
+  })();
+</script>
