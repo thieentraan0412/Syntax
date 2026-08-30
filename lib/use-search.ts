@@ -11,11 +11,7 @@
  * quả nhấp nháy liên tục khi gõ nhanh — lý do thị giác, không phải lý do máy.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  loadSearchEngine,
-  type SearchEngine,
-  type SearchHit,
-} from "./search.ts";
+import { loadSearchEngine, type SearchEngine, type SearchHit } from "./search.ts";
 import type { Category, SearchIndexEntry } from "./types.ts";
 
 export const DEBOUNCE_MS = 120;

@@ -16,6 +16,7 @@ import { GAN_DAY, GHIM, hrefGhim } from "../lib/ua-thich.ts";
 import { SearchBar } from "./SearchBar.tsx";
 import { CategoryFilter } from "./CategoryFilter.tsx";
 import { SearchResults, Suggestions } from "./SearchResults.tsx";
+import { CategoryIcon } from "./CategoryIcon.tsx";
 import { categoriesInOrder } from "../lib/entries.ts";
 
 export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> }) {
@@ -58,7 +59,7 @@ export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> })
   const daGo = query.trim() !== "";
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-7">
       <div className="mx-auto w-full max-w-3xl">
         <SearchBar
           value={query}
@@ -79,15 +80,15 @@ export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> })
         <>
           {ghim.length > 0 && (
             <section className="mx-auto flex w-full max-w-3xl flex-col gap-2">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">Đã ghim</h2>
-              <ul className="flex flex-wrap gap-1.5">
+              <h2 className="text-muted text-xs font-semibold tracking-wider uppercase">Đã ghim</h2>
+              <ul className="flex flex-wrap gap-2">
                 {ghim.map((m) => (
                   <li key={`${m.c}/${m.i}`}>
                     <Link
                       href={hrefGhim(m)}
-                      className="inline-block wrap-anywhere rounded-lg border border-border px-3 py-1.5 font-mono text-[13px] transition-colors hover:border-accent hover:text-accent"
+                      className="glass glass-hover hover:text-accent inline-block rounded-xl px-3 py-1.5 font-mono text-[13px] wrap-anywhere"
                     >
-                      ★ {m.t}
+                      <span className="text-accent">★</span> {m.t}
                     </Link>
                   </li>
                 ))}
@@ -97,17 +98,17 @@ export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> })
 
           {ganDay.length > 0 && (
             <section className="mx-auto flex w-full max-w-3xl flex-col gap-2">
-              <h2 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-muted">
+              <h2 className="text-muted flex items-center gap-3 text-xs font-semibold tracking-wider uppercase">
                 Tìm gần đây
                 <button
                   type="button"
                   onClick={() => GAN_DAY.xoaHet()}
-                  className="cursor-pointer font-normal normal-case tracking-normal underline-offset-2 hover:text-accent hover:underline"
+                  className="hover:text-accent cursor-pointer font-normal tracking-normal normal-case underline-offset-2 hover:underline"
                 >
                   xoá
                 </button>
               </h2>
-              <ul className="flex flex-wrap gap-1.5">
+              <ul className="flex flex-wrap gap-2">
                 {ganDay.map((q) => (
                   <li key={q}>
                     <button
@@ -116,7 +117,7 @@ export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> })
                         setQuery(q);
                         nav.datLai();
                       }}
-                      className="cursor-pointer rounded-full border border-border px-3 py-1 text-[13px] text-muted transition-colors hover:border-accent hover:text-accent"
+                      className="glass glass-hover text-muted hover:text-accent cursor-pointer rounded-full px-3 py-1 text-[13px]"
                     >
                       {q}
                     </button>
@@ -131,7 +132,7 @@ export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> })
       )}
 
       {daGo && status === "error" && (
-        <p className="mx-auto w-full max-w-3xl rounded-xl border border-border bg-surface px-4 py-3 text-sm text-muted">
+        <p className="glass text-muted mx-auto w-full max-w-3xl rounded-2xl px-4 py-3 text-sm">
           Không tải được dữ liệu tìm kiếm{error ? ` (${error.message})` : ""}. Bấm lại vào ô tìm
           kiếm để thử lần nữa.
         </p>
@@ -165,9 +166,9 @@ export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> })
             "không tìm thấy" lại nháy lên một cái rồi biến — rất khó chịu.
           */}
           {hits.length === 0 && !isStale && status === "ready" && (
-            <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface px-4 py-3">
+            <div className="glass flex flex-col gap-2 rounded-2xl px-4 py-3.5">
               <p className="text-sm">
-                Không có kết quả cho <span className="font-mono">{query.trim()}</span>.
+                Không có kết quả cho <span className="text-accent font-mono">{query.trim()}</span>.
               </p>
               <Suggestions items={suggestions} />
             </div>
@@ -180,18 +181,28 @@ export function Search({ demTheoNhom }: { demTheoNhom: Record<string, number> })
 
 function NhomGrid({ demTheoNhom }: { demTheoNhom: Record<string, number> }) {
   return (
-    <nav aria-label="Duyệt theo nhóm" className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+    <nav
+      aria-label="Duyệt theo nhóm"
+      className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+    >
       {categoriesInOrder().map((c) => (
         <Link
           key={c.slug}
           href={`/${c.slug}/`}
-          className="group flex flex-col gap-1 rounded-xl border border-border px-4 py-3 transition-colors hover:border-accent hover:bg-surface"
+          className="glass glass-hover group flex flex-col gap-2 rounded-2xl px-4 py-4"
         >
-          <span className="flex items-baseline justify-between gap-2">
-            <span className="font-medium group-hover:text-accent">{c.name}</span>
-            <span className="text-xs tabular-nums text-muted">{demTheoNhom[c.slug] ?? 0}</span>
+          <span className="flex items-center gap-3">
+            <span className="tile flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+              <CategoryIcon slug={c.slug} className="h-[18px] w-[18px]" />
+            </span>
+            <span className="group-hover:text-accent flex-1 font-semibold transition-colors">
+              {c.name}
+            </span>
+            <span className="bg-surface-2 text-muted rounded-full px-2 py-0.5 text-xs tabular-nums">
+              {demTheoNhom[c.slug] ?? 0}
+            </span>
           </span>
-          <span className="line-clamp-2 text-sm leading-relaxed text-muted">{c.description}</span>
+          <span className="text-muted line-clamp-2 text-sm leading-relaxed">{c.description}</span>
         </Link>
       ))}
     </nav>

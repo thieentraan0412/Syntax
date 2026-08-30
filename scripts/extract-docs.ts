@@ -71,7 +71,10 @@ function cleanType(raw: string): string {
 function cleanProse(md: string): string {
   return md
     .replace(/\[`method:\s*([^`\]]+)`\]/g, (_m, n: string) => "`" + n.trim() + "()`")
-    .replace(/\[`(?:property|event|option|param):\s*([^`\]]+)`\]/g, (_m, n: string) => "`" + n.trim() + "`")
+    .replace(
+      /\[`(?:property|event|option|param):\s*([^`\]]+)`\]/g,
+      (_m, n: string) => "`" + n.trim() + "`",
+    )
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
     .replace(/[ \t]+$/gm, "")
     .replace(/\n{3,}/g, "\n\n")
@@ -128,7 +131,11 @@ const HEADING =
 const META_LINE = /^\*\s+(\w+):\s*(.*)$/;
 
 /** Tách phần `* key: value` và `- bullet` ra khỏi thân block. */
-function splitMeta(buf: string[]): { meta: Record<string, string>; bullets: string[]; body: string } {
+function splitMeta(buf: string[]): {
+  meta: Record<string, string>;
+  bullets: string[];
+  body: string;
+} {
   const meta: Record<string, string> = {};
   const bullets: string[] = [];
   const rest: string[] = [];
@@ -318,7 +325,9 @@ function buildParam(block: Block, macros: Map<string, Macro>): BuildResult {
 // ---------------------------------------------------------------------------
 
 async function main() {
-  const files = (await readdir(CACHE)).filter((f) => f.startsWith("class-") && f.endsWith(".md")).sort();
+  const files = (await readdir(CACHE))
+    .filter((f) => f.startsWith("class-") && f.endsWith(".md"))
+    .sort();
   if (files.length === 0) {
     throw new Error("Chưa có .cache/class-*.md — chạy `node scripts/fetch-sources.ts` trước");
   }

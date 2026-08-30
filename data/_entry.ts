@@ -10,7 +10,8 @@
  * tự cập nhật, không phải sờ vào 340 entry.
  */
 import { FACTS, type Fact } from "./facts.ts";
-import type { CheatEntry, Category, Param } from "../lib/types.ts";
+import { EXAMPLES } from "./examples.ts";
+import type { CheatEntry, Category, Example, Param } from "../lib/types.ts";
 
 /** Phần người viết cho một entry. */
 export type Curated = {
@@ -33,6 +34,12 @@ export type Curated = {
   related?: string[];
   /** Cảnh báo / deprecated / best practice. */
   note?: string;
+  /**
+   * Ví dụ dài viết tay. Bỏ trống thì lấy ví dụ máy chọn từ docs
+   * (data/examples.ts); viết vào đây là thay hẳn, không trộn — đã bỏ công viết
+   * ví dụ riêng thì ví dụ máy chỉ làm loãng.
+   */
+  examples?: Example[];
 };
 
 /** Entry không ứng với API nào trong facts (lệnh CLI, biến môi trường, mẫu code). */
@@ -56,13 +63,26 @@ function kebab(name: string): string {
     .toLowerCase();
 }
 
+/**
+ * Ví dụ phụ: ưu tiên bản viết tay, không có thì lấy bản máy chọn từ docs.
+ *
+ * Khoá tra là `category/id` chứ không phải khoá API — nhờ vậy `standalone()`
+ * (lệnh CLI, mẫu POM) cũng gắn được ví dụ, dù nó không ứng với API nào.
+ */
+function toExamples(category: Category, id: string, curated: Curated): Example[] | undefined {
+  const list = curated.examples ?? EXAMPLES[`${category}/${id}`];
+  return list && list.length > 0 ? list : undefined;
+}
+
 function toParams(fact: Fact, curated: Curated): Param[] | undefined {
   const pool = [...fact.params, ...fact.options];
   const picked = curated.showParams
     ? curated.showParams.map((name) => {
         const found = pool.find((p) => p.name === name);
         if (!found) {
-          throw new Error(`${fact.key}: showParams có "${name}" nhưng API không có param/option đó`);
+          throw new Error(
+            `${fact.key}: showParams có "${name}" nhưng API không có param/option đó`,
+          );
         }
         return found;
       })
@@ -92,14 +112,17 @@ export function entry(key: string, category: Category, curated: Curated): CheatE
     );
   }
 
+  const id = curated.id ?? kebab(key.slice(key.indexOf(".") + 1));
+
   return {
-    id: curated.id ?? kebab(key.slice(key.indexOf(".") + 1)),
+    id,
     title: curated.title ?? fact.title,
     category,
     signature: fact.signature,
     description: curated.description,
     code: curated.code.trim(),
     codeLang: curated.codeLang ?? "ts",
+    examples: toExamples(category, id, curated),
     params: toParams(fact, curated),
     returns: fact.returns,
     since: fact.since,
@@ -124,6 +147,7 @@ export function standalone(category: Category, curated: Standalone): CheatEntry 
     description: curated.description,
     code: curated.code.trim(),
     codeLang: curated.codeLang ?? "ts",
+    examples: toExamples(category, curated.id, curated),
     params: curated.params,
     returns: curated.returns,
     since: curated.since,

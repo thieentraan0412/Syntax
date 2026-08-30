@@ -93,7 +93,9 @@ async function main() {
   const parseSorted = [...parseTimes].sort((a, b) => a - b);
   const buildSorted = [...buildTimes].sort((a, b) => a - b);
 
-  console.log(`Bộ dữ liệu: ${index.entries.length} entry · ${(raw.length / 1024).toFixed(1)} KB thô`);
+  console.log(
+    `Bộ dữ liệu: ${index.entries.length} entry · ${(raw.length / 1024).toFixed(1)} KB thô`,
+  );
   console.log(`Nguồn     : ${index.meta.generatedFrom}`);
   console.log(`Số lần đo : ${RUNS} lượt search trên ${QUERIES.length} truy vấn\n`);
 
@@ -136,7 +138,14 @@ async function main() {
     const hits = engine.search(typo, { limit: 5 });
     const ok = hits.some((h) => h.entry.title.toLowerCase().includes(expect.toLowerCase()));
     console.log(
-      `  ${ok ? "✓" : "✗"} "${typo}" → ${hits.length > 0 ? hits.map((h) => h.entry.title).slice(0, 3).join(", ") : "(không có kết quả)"}`,
+      `  ${ok ? "✓" : "✗"} "${typo}" → ${
+        hits.length > 0
+          ? hits
+              .map((h) => h.entry.title)
+              .slice(0, 3)
+              .join(", ")
+          : "(không có kết quả)"
+      }`,
     );
     if (!ok) fuzzyFail++;
   }

@@ -39,6 +39,18 @@ export function SearchBar({
 
   return (
     <div className="relative">
+      <svg
+        aria-hidden
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        className="text-muted pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2"
+      >
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.5-3.5" />
+      </svg>
       <input
         ref={ref}
         id={ID_O_TIM_KIEM}
@@ -61,13 +73,13 @@ export function SearchBar({
           }
           onKeyDown?.(e);
         }}
-        placeholder="Tìm hàm, cú pháp, biến…  ví dụ: getByRole, toBeVisible, storageState"
+        placeholder="Tìm hàm, cú pháp, biến…  ví dụ: getByRole, toBeVisible"
         aria-label="Tìm trong cheatsheet Playwright"
         spellCheck={false}
         autoComplete="off"
-        className="w-full rounded-xl border border-border bg-surface px-4 py-3 pr-24 text-[15px] outline-none transition-colors placeholder:text-muted/70 focus:border-accent"
+        className="glass placeholder:text-muted/70 focus:border-accent w-full rounded-2xl py-4 pr-24 pl-12 text-[15px] transition-colors outline-none"
       />
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted">
+      <span className="text-muted pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-xs">
         {dangTai ? "đang tải…" : value === "" ? "gõ / để tìm" : ""}
       </span>
     </div>

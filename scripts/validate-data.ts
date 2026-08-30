@@ -66,6 +66,34 @@ function checkShape(e: CheatEntry, at: string) {
   if (e.description && /[a-z]/.test(e.description) && e.description.length < 15) {
     warn(`${at}: mô tả quá ngắn ("${e.description}")`);
   }
+
+  checkExamples(e, at);
+}
+
+/**
+ * Ví dụ phụ phần lớn do máy chọn từ docs (scripts/build-examples.ts), nên phải
+ * soi ở đây: script đó chấm điểm bằng heuristic, mà heuristic thì hỏng lặng lẽ.
+ */
+function checkExamples(e: CheatEntry, at: string) {
+  const list = e.examples ?? [];
+  if (list.length > 4) warn(`${at}: ${list.length} ví dụ phụ — nhiều quá, trang thành cuộn dài`);
+
+  const thayCode = new Set<string>();
+  for (const [i, v] of list.entries()) {
+    const o = `${at}: ví dụ ${i + 1}`;
+    if (!v.title?.trim()) err(`${o} thiếu title`);
+    if (!v.code?.trim()) err(`${o} thiếu code`);
+    if (v.lang !== "ts" && v.lang !== "bash") err(`${o} có lang lạ: "${v.lang}"`);
+    if (!["api", "guide", "tay"].includes(v.source)) err(`${o} có source lạ: "${v.source}"`);
+    if (v.source !== "tay" && !v.url) err(`${o} lấy từ docs mà không có link nguồn`);
+    if (v.url && !v.url.startsWith("https://playwright.dev/")) {
+      err(`${o} có url không trỏ về playwright.dev: "${v.url}"`);
+    }
+    // Ví dụ trùng y hệt code chính thì chỉ tổ làm trang dài ra.
+    if (v.code?.trim() === e.code?.trim()) err(`${o} trùng nguyên đoạn code chính của entry`);
+    if (v.code && thayCode.has(v.code)) err(`${o} trùng với một ví dụ khác của cùng entry`);
+    if (v.code) thayCode.add(v.code);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -136,7 +164,9 @@ async function checkDocsUrls(all: CheatEntry[]) {
     return;
   }
 
-  const urls = new Set([...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/\/$/, "")));
+  const urls = new Set(
+    [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/\/$/, "")),
+  );
   console.log(`\n  sitemap.xml: ${urls.size} URL`);
 
   const missing = new Set<string>();

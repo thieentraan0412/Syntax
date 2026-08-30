@@ -8,6 +8,7 @@ import { categoriesInOrder } from "../../lib/entries.ts";
 import { getCategory, isCategory, type CheatEntry } from "../../lib/types.ts";
 import { EntryListItem } from "../../components/EntryCard.tsx";
 import { CopyAllButton } from "../../components/CopyAllButton.tsx";
+import { CategoryIcon } from "../../components/CategoryIcon.tsx";
 
 /**
  * `false` = chỉ đúng 15 slug dưới đây tồn tại, vào slug lạ thì 404 ngay lúc
@@ -60,17 +61,25 @@ export default async function TrangNhom(props: PageProps<"/[category]">) {
   if (!nhom) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-7">
       <header className="flex flex-col gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">{nhom.name}</h1>
-        <p className="max-w-2xl text-[15px] leading-relaxed text-muted">{nhom.description}</p>
+        {/* Ô vuông gradient + tên nhóm — cùng khuôn với tiêu đề mục ở trang chi tiết. */}
+        <div className="flex items-center gap-3.5">
+          <span className="tile flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl">
+            <CategoryIcon slug={nhom.slug} className="h-6 w-6" />
+          </span>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{nhom.name}</h1>
+        </div>
+        <p className="text-muted max-w-2xl text-[15px] leading-relaxed">{nhom.description}</p>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm text-muted">{danhSach.length} mục</span>
+          <span className="border-border bg-surface-2 text-muted rounded-full border px-3 py-1 text-sm">
+            {danhSach.length} mục
+          </span>
           <CopyAllButton noiDung={ghepCode(danhSach)} soMuc={danhSach.length} />
         </div>
       </header>
 
-      <ul className="grid gap-2 lg:grid-cols-2 2xl:grid-cols-3">
+      <ul className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
         {danhSach.map((e) => (
           <EntryListItem key={e.id} entry={e} />
         ))}

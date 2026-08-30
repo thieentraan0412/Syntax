@@ -94,7 +94,7 @@ export function ThemeToggle() {
       onClick={() => dat(VONG[key])}
       title={`Giao diện: ${nhan.text} — bấm để đổi`}
       aria-label={`Giao diện: ${nhan.text}. Bấm để đổi.`}
-      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border text-muted transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      className="glass text-muted hover:text-accent focus-visible:outline-accent flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       <span aria-hidden className="text-base leading-none">
         {nhan.icon}

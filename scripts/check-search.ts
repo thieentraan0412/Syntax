@@ -79,20 +79,50 @@ async function main() {
 
   check(
     "khoảng chồng nhau -> gộp làm một",
-    marked(highlight("abcdef", [[0, 2], [1, 3]])) === "[abcd]ef",
-    marked(highlight("abcdef", [[0, 2], [1, 3]])),
+    marked(
+      highlight("abcdef", [
+        [0, 2],
+        [1, 3],
+      ]),
+    ) === "[abcd]ef",
+    marked(
+      highlight("abcdef", [
+        [0, 2],
+        [1, 3],
+      ]),
+    ),
   );
 
   check(
     "khoảng liền kề -> gộp làm một",
-    marked(highlight("abcdef", [[0, 1], [2, 3]])) === "[abcd]ef",
-    marked(highlight("abcdef", [[0, 1], [2, 3]])),
+    marked(
+      highlight("abcdef", [
+        [0, 1],
+        [2, 3],
+      ]),
+    ) === "[abcd]ef",
+    marked(
+      highlight("abcdef", [
+        [0, 1],
+        [2, 3],
+      ]),
+    ),
   );
 
   check(
     "khoảng đảo thứ tự vẫn đúng",
-    marked(highlight("abcdef", [[4, 5], [0, 1]])) === "[ab]cd[ef]",
-    marked(highlight("abcdef", [[4, 5], [0, 1]])),
+    marked(
+      highlight("abcdef", [
+        [4, 5],
+        [0, 1],
+      ]),
+    ) === "[ab]cd[ef]",
+    marked(
+      highlight("abcdef", [
+        [4, 5],
+        [0, 1],
+      ]),
+    ),
   );
 
   check(
@@ -149,7 +179,9 @@ async function main() {
   check(
     "lọc nhóm giữ nguyên thứ hạng tương đối",
     (() => {
-      const all = engine.search("click", { limit: 1000 }).filter((h) => h.entry.category === "actions");
+      const all = engine
+        .search("click", { limit: 1000 })
+        .filter((h) => h.entry.category === "actions");
       const filtered = engine.search("click", { limit: 1000, category: "actions" });
       return all.map((h) => h.entry.id).join() === filtered.map((h) => h.entry.id).join();
     })(),

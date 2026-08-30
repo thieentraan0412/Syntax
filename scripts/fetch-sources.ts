@@ -3,6 +3,7 @@
  *
  *   Nguồn A: types.d.ts (unpkg)          -> signature, params, returns, deprecated, code JSDoc
  *   Nguồn B: docs/src/api/*.md (GitHub)  -> since, returns chuẩn, code js, macro params.md
+ *   Nguồn C: docs/src/*.md (GitHub)      -> ví dụ DÀI ở tầng guide (xem cuối main())
  *
  * Lệch so với kế hoạch: kế hoạch chỉ nói `playwright-core` + `docs/src/api`, nhưng
  * như vậy THIẾU toàn bộ API của `@playwright/test` (test, expect, fixtures, config,
@@ -19,6 +20,8 @@ import { join } from "node:path";
 export const PW_VERSION = process.env.PW_VERSION ?? "1.62.1";
 
 const CACHE = ".cache";
+/** Guide để riêng: 71 file, trùng tên với `class-*.md` thì không sao nhưng lẫn lộn thì khó soi. */
+const GUIDES = join(CACHE, "guides");
 /** File .d.ts nặng ~1 MB, mạng chậm có thể mất vài phút. */
 const TIMEOUT_MS = Number(process.env.FETCH_TIMEOUT_MS ?? 300_000);
 const RETRIES = 3;
@@ -115,7 +118,9 @@ async function main() {
       ),
     ) as Array<{ name: string; type: string }>;
 
-    const names = listing.filter((f) => f.type === "file" && f.name.endsWith(".md")).map((f) => f.name);
+    const names = listing
+      .filter((f) => f.type === "file" && f.name.endsWith(".md"))
+      .map((f) => f.name);
     console.log(`  ✓ ${names.length} file .md`);
 
     const missing: string[] = [];
@@ -133,6 +138,50 @@ async function main() {
       await writeFile(join(CACHE, name), body);
       console.log(`  ✓ ${(++done).toString().padStart(2)}/${missing.length} ${name}`);
     });
+  }
+
+  // --- Nguồn C: docs/src/*.md (guide) --------------------------------------
+  //
+  // `docs/src/api` chỉ có ví dụ 2–3 dòng cho từng hàm. Ví dụ DÀI — cả file Page
+  // Object, cả playwright.config.ts, cả một test hoàn chỉnh — nằm ở tầng guide:
+  // locators.md (46 KB), test-fixtures-js.md (29 KB), auth.md (25 KB)…
+  //
+  // Bỏ file của ngôn ngữ khác (-java/-python/-csharp) và release-notes (4 file,
+  // 380 KB toàn changelog, không có ví dụ dạy được).
+  const BO_GUIDE = /-(java|python|csharp)\.md$|^release-notes|^intro-(java|python|csharp)/;
+  const guideFiles: string[] = [];
+  {
+    console.log(`→ liệt kê docs/src…`);
+    const listing = JSON.parse(
+      await get(
+        `https://api.github.com/repos/microsoft/playwright/contents/docs/src?ref=v${PW_VERSION}`,
+        "application/vnd.github+json",
+      ),
+    ) as Array<{ name: string; type: string }>;
+
+    const names = listing
+      .filter((f) => f.type === "file" && f.name.endsWith(".md") && !BO_GUIDE.test(f.name))
+      .map((f) => f.name);
+    console.log(`  ✓ ${names.length} guide (đã bỏ bản java/python/csharp và release-notes)`);
+
+    await mkdir(GUIDES, { recursive: true });
+    const missing: string[] = [];
+    for (const name of names) {
+      guideFiles.push(name);
+      if (!(await exists(join(GUIDES, name)))) missing.push(name);
+    }
+    if (missing.length === 0) {
+      console.log(`  ↷ đã có đủ trong ${GUIDES}`);
+    } else {
+      let done = 0;
+      await pool(missing, 4, async (name) => {
+        const body = await getRepoFile(`docs/src/${name}`);
+        await writeFile(join(GUIDES, name), body);
+        if (++done % 10 === 0 || done === missing.length) {
+          console.log(`  ✓ ${done}/${missing.length}`);
+        }
+      });
+    }
   }
 
   // --- Ghim version + cảnh báo lỗi thời ------------------------------------
@@ -155,8 +204,10 @@ async function main() {
       testTypes: `https://unpkg.com/playwright@${PW_VERSION}/types/test.d.ts`,
       docs: `https://github.com/microsoft/playwright/tree/v${PW_VERSION}/docs/src/api`,
       testDocs: `https://github.com/microsoft/playwright/tree/v${PW_VERSION}/docs/src/test-api`,
+      guides: `https://github.com/microsoft/playwright/tree/v${PW_VERSION}/docs/src`,
     },
     files: ["pw.d.ts", "pw-test.d.ts", ...mdFiles],
+    guides: guideFiles,
   };
   await writeFile(join(CACHE, "meta.json"), JSON.stringify(meta, null, 2) + "\n");
 

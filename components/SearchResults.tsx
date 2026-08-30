@@ -31,7 +31,7 @@ function ToSang({
     <span className={className}>
       {doan.map((d, i) =>
         d.hit ? (
-          <mark key={i} className="rounded-sm bg-accent/20 text-inherit">
+          <mark key={i} className="bg-accent/25 rounded-sm px-0.5 font-semibold text-inherit">
             {d.text}
           </mark>
         ) : (
@@ -77,8 +77,8 @@ export function SearchResults({
               className={
                 "group flex flex-col gap-1 rounded-xl border px-3 py-2.5 transition-colors " +
                 (dangChon
-                  ? "border-accent bg-surface"
-                  : "border-transparent hover:border-border hover:bg-surface")
+                  ? "border-accent bg-surface-2"
+                  : "hover:border-border hover:bg-surface-2 border-transparent")
               }
             >
               <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -86,16 +86,18 @@ export function SearchResults({
                   hit={hit}
                   field="title"
                   className={
-                    "wrap-anywhere font-mono text-[15px] font-medium " +
+                    "font-mono text-[15px] font-medium wrap-anywhere " +
                     (dangChon ? "text-accent" : "group-hover:text-accent")
                   }
                 />
-                <span className="text-xs text-muted">{nhom?.name ?? hit.entry.category}</span>
+                <span className="bg-surface-2 text-muted rounded-full px-2 py-0.5 text-xs">
+                  {nhom?.name ?? hit.entry.category}
+                </span>
               </span>
               <ToSang
                 hit={hit}
                 field="description"
-                className="line-clamp-2 text-sm leading-relaxed text-muted"
+                className="text-muted line-clamp-2 text-sm leading-relaxed"
               />
             </Link>
           </li>
@@ -109,12 +111,15 @@ export function SearchResults({
 export function Suggestions({ items }: { items: SearchIndexEntry[] }) {
   if (items.length === 0) return null;
   return (
-    <p className="text-sm text-muted">
+    <p className="text-muted text-sm">
       Ý bạn là:{" "}
       {items.map((e, i) => (
         <span key={`${e.category}/${e.id}`}>
           {i > 0 && ", "}
-          <Link href={hrefOf(e)} className="font-mono text-accent underline-offset-4 hover:underline">
+          <Link
+            href={hrefOf(e)}
+            className="text-accent font-mono underline-offset-4 hover:underline"
+          >
             {e.title}
           </Link>
         </span>

@@ -7,6 +7,13 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /**
+ * Bảng màu: tím sâu + cam.
+ *
+ * Bản TỐI là bản gốc của thiết kế (nền gradient tím, tiêu đề cam, thẻ kính).
+ * Bản SÁNG là bản dịch của đúng hệ đó sang nền oải hương nhạt — cùng hình khối,
+ * cùng gradient, chỉ đảo vai trò nền/chữ. Nhờ vậy nút đổi theme vẫn còn nghĩa
+ * mà không sinh ra hai giao diện rời nhau.
+ *
  * Ba trạng thái theme, và thứ tự này là cố ý:
  *
  *   1. `:root`                         -> sáng, mặc định của server
@@ -19,41 +26,98 @@
  * lượt vẽ đầu tiên (xem app/layout.tsx).
  */
 :root {
-  --bg: #ffffff;
-  --surface: #f6f7f8;
-  --surface-2: #eceef0;
-  --border: #e2e5e8;
-  --fg: #16191d;
-  --muted: #5b636d;
-  --accent: #178620;
+  --bg: #f4f0ff;
+  --bg-layers:
+    radial-gradient(1100px 720px at 12% -12%, #e5d8ff 0%, transparent 62%),
+    radial-gradient(900px 640px at 92% 4%, #ffe6cc 0%, transparent 58%),
+    linear-gradient(180deg, #faf8ff 0%, #f1eaff 46%, #ece2ff 100%);
+
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-2: rgba(124, 58, 237, 0.08);
+  --border: rgba(91, 33, 182, 0.16);
+  --border-strong: rgba(234, 88, 12, 0.5);
+  --fg: #241638;
+  --muted: #6b5b88;
+  --accent: #d0600a;
   --accent-fg: #ffffff;
-  --ring: #2ead33;
+  --ring: #ea580c;
+
+  --violet: #7c3aed;
+  --grad-title: linear-gradient(135deg, #f59e0b 0%, #ea580c 55%, #dc2626 100%);
+  --grad-accent: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  --grad-tile: linear-gradient(135deg, #8b5cf6 0%, #4f46e5 100%);
+
+  --code-bg: #ffffff;
+  --code-bar: #f3edff;
+  /* Nền ĐẶC của hộp nổi (bảng kết quả, hộp phím tắt). Chúng nằm đè lên nội
+     dung trang chứ không nằm trên nền, nên không được trong suốt như `.glass`
+     — chữ chồng chữ thì không đọc nổi. */
+  --panel: #ffffff;
+  --shadow-card: 0 1px 2px rgba(46, 16, 82, 0.06);
+  --shadow-lift: 0 12px 30px -12px rgba(46, 16, 82, 0.28);
+  --shadow-pop: 0 24px 60px -20px rgba(46, 16, 82, 0.35);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0c0e11;
-    --surface: #14171b;
-    --surface-2: #1c2026;
-    --border: #272c33;
-    --fg: #e7eaee;
-    --muted: #98a1ab;
-    --accent: #4ecf55;
-    --accent-fg: #06140a;
-    --ring: #4ecf55;
+    --bg: #1a0b2e;
+    --bg-layers:
+      radial-gradient(1200px 780px at 10% -14%, #4c2185 0%, transparent 60%),
+      radial-gradient(1000px 700px at 94% 6%, #5b21b6 0%, transparent 55%),
+      linear-gradient(180deg, #180a2b 0%, #2b1147 44%, #3d1c62 100%);
+
+    --surface: rgba(255, 255, 255, 0.055);
+    --surface-2: rgba(255, 255, 255, 0.1);
+    --border: rgba(196, 167, 255, 0.18);
+    --border-strong: rgba(255, 157, 46, 0.55);
+    --fg: #f4eeff;
+    --muted: #bda9e0;
+    --accent: #ff9d2e;
+    --accent-fg: #2a1400;
+    --ring: #ff9d2e;
+
+    --violet: #a78bfa;
+    --grad-title: linear-gradient(135deg, #ffc857 0%, #ff8a00 48%, #ff6a2a 100%);
+    --grad-accent: linear-gradient(135deg, #ffb547 0%, #ff7a18 100%);
+    --grad-tile: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+
+    --code-bg: #130c21;
+    --code-bar: #1f1535;
+    --panel: #251043;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-lift: 0 16px 34px -14px rgba(0, 0, 0, 0.75);
+    --shadow-pop: 0 28px 70px -22px rgba(0, 0, 0, 0.85);
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #0c0e11;
-  --surface: #14171b;
-  --surface-2: #1c2026;
-  --border: #272c33;
-  --fg: #e7eaee;
-  --muted: #98a1ab;
-  --accent: #4ecf55;
-  --accent-fg: #06140a;
-  --ring: #4ecf55;
+  --bg: #1a0b2e;
+  --bg-layers:
+    radial-gradient(1200px 780px at 10% -14%, #4c2185 0%, transparent 60%),
+    radial-gradient(1000px 700px at 94% 6%, #5b21b6 0%, transparent 55%),
+    linear-gradient(180deg, #180a2b 0%, #2b1147 44%, #3d1c62 100%);
+
+  --surface: rgba(255, 255, 255, 0.055);
+  --surface-2: rgba(255, 255, 255, 0.1);
+  --border: rgba(196, 167, 255, 0.18);
+  --border-strong: rgba(255, 157, 46, 0.55);
+  --fg: #f4eeff;
+  --muted: #bda9e0;
+  --accent: #ff9d2e;
+  --accent-fg: #2a1400;
+  --ring: #ff9d2e;
+
+  --violet: #a78bfa;
+  --grad-title: linear-gradient(135deg, #ffc857 0%, #ff8a00 48%, #ff6a2a 100%);
+  --grad-accent: linear-gradient(135deg, #ffb547 0%, #ff7a18 100%);
+  --grad-tile: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+
+  --code-bg: #130c21;
+  --code-bar: #1f1535;
+  --panel: #251043;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lift: 0 16px 34px -14px rgba(0, 0, 0, 0.75);
+  --shadow-pop: 0 28px 70px -22px rgba(0, 0, 0, 0.85);
 }
 
 @theme inline {
@@ -61,22 +125,130 @@
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-fg: var(--fg);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
+  --color-violet: var(--violet);
+  --color-code: var(--code-bg);
+  --color-code-bar: var(--code-bar);
+  --color-panel: var(--panel);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/**
+ * Nền gradient dán cố định theo khung nhìn: cuộn trang thì nền đứng yên, đúng
+ * kiểu "một tấm nền lớn" của thiết kế. `background-color` đặt trước làm lớp lót
+ * cho lúc gradient chưa vẽ xong.
+ */
 body {
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: var(--bg-layers);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
   color: var(--fg);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--ring) 28%, transparent);
+  background: color-mix(in srgb, var(--ring) 30%, transparent);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Người bật "giảm chuyển động" thì cuộn mượt cũng là chuyển động. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* Nguyên liệu dùng lại của giao diện                                         */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * Thẻ kính — khối nền của gần như mọi hộp trong trang.
+ *
+ * `backdrop-filter` để nền gradient phía sau lọt qua nhưng bị làm mờ, nên thẻ
+ * nổi lên mà không cần một màu đặc nào. Trình duyệt không hỗ trợ thì vẫn còn
+ * `background` bán trong suốt, chỉ kém mờ hơn — không vỡ bố cục.
+ */
+.glass {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-card);
+}
+
+.glass-hover {
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.glass-hover:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-hover:hover {
+    transform: none;
+  }
+}
+
+/**
+ * Vạch cam bên trái của hộp "Lưu ý".
+ *
+ * Phải là một class riêng chứ không phải `border-l-4` của Tailwind: `.glass`
+ * dùng shorthand `border`, mà nó nằm SAU utility trong file nên sẽ ghi đè lại
+ * độ dày viền trái về 1px.
+ */
+.note-accent {
+  border-left: 4px solid var(--accent);
+}
+
+/** Chữ gradient cam của tiêu đề lớn. */
+.text-gradient {
+  background: var(--grad-title);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/** Ô vuông bo góc có gradient — đứng trước mỗi tiêu đề mục. */
+.tile {
+  background: var(--grad-tile);
+  color: #fff;
+  box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--violet) 75%, transparent);
+}
+
+.tile-accent {
+  background: var(--grad-accent);
+  color: #fff;
+  box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--ring) 70%, transparent);
+}
+
+/** Nút / chip đang bật: nền gradient cam, chữ trắng. */
+.btn-accent {
+  background: var(--grad-accent);
+  color: #fff;
+  border-color: transparent;
+}
+
+.btn-accent:hover {
+  filter: brightness(1.07);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -108,14 +280,29 @@ body {
 
 .shiki {
   overflow-x: auto;
-  padding: 1rem 1.125rem;
+  padding: 1.05rem 1.25rem;
   font-size: 0.875rem;
-  line-height: 1.7;
+  line-height: 1.75;
   tab-size: 2;
 }
 
 .shiki code {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* Thanh cuộn ngang của khối code không nên là thanh xám mặc định của hệ điều
+   hành nằm đè lên nền tím. */
+.shiki::-webkit-scrollbar {
+  height: 8px;
+}
+
+.shiki::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
+}
+
+.shiki::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* Neo cuộn không bị header dính che mất tiêu đề. */

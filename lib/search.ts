@@ -142,7 +142,10 @@ export type Segment = { text: string; hit: boolean };
  * Trả về mảng chứ không trả HTML: chuỗi HTML phải qua `dangerouslySetInnerHTML`,
  * mà nội dung này lấy từ dữ liệu — không đáng đánh đổi để tiết kiệm vài dòng.
  */
-export function highlight(text: string, indices: readonly (readonly [number, number])[]): Segment[] {
+export function highlight(
+  text: string,
+  indices: readonly (readonly [number, number])[],
+): Segment[] {
   if (indices.length === 0) return [{ text, hit: false }];
 
   // Fuse trả các khoảng có thể chồng nhau và không đảm bảo thứ tự.

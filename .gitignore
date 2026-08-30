@@ -49,8 +49,9 @@ next-env.d.ts
 # nguồn dữ liệu tải về (sinh lại được bằng scripts/fetch-sources.ts)
 /.cache/
 
-# stub tạm do scripts/typecheck-samples.ts sinh
+# stub tạm do scripts/typecheck-samples.ts và scripts/build-examples.ts sinh
 /.cache/samples/
+/.cache/examples/
 
 # log cài đặt
 npm-install.log

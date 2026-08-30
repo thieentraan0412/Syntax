@@ -54,10 +54,12 @@ export function CopyButton({
             : "Chép code"
       }
       className={
-        "cursor-pointer rounded-md border bg-surface px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent " +
+        "border-border bg-surface-2 focus-visible:outline-accent cursor-pointer rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 " +
         (trangThai === "loi"
-          ? "border-border text-muted"
-          : "border-border text-muted hover:border-accent hover:text-accent")
+          ? "text-muted"
+          : trangThai === "xong"
+            ? "border-accent text-accent"
+            : "text-muted hover:border-accent hover:text-accent")
       }
     >
       {trangThai === "xong" ? "Đã chép ✓" : trangThai === "loi" ? "Không chép được" : label}

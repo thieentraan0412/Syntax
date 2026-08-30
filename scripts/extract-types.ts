@@ -80,7 +80,9 @@ function jsDocText(node: ts.Node): string {
   const docs = (node as ts.Node & { jsDoc?: ts.JSDoc[] }).jsDoc;
   if (!docs?.length) return "";
   return docs
-    .map((d) => (typeof d.comment === "string" ? d.comment : ts.getTextOfJSDocComment(d.comment) ?? ""))
+    .map((d) =>
+      typeof d.comment === "string" ? d.comment : (ts.getTextOfJSDocComment(d.comment) ?? ""),
+    )
     .join("\n\n")
     .trim();
 }
@@ -118,7 +120,10 @@ function deprecatedOf(node: ts.Node): string | undefined {
 
 /** Gọn kiểu về 1 dòng: bỏ xuống dòng và khoảng trắng thừa của object type dài. */
 function oneLine(text: string): string {
-  return text.replace(/\s*\n\s*/g, " ").replace(/\s{2,}/g, " ").trim();
+  return text
+    .replace(/\s*\n\s*/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 /**
@@ -153,7 +158,11 @@ function renderParam(p: ts.ParameterDeclaration): string {
 
 type Container = ts.InterfaceDeclaration | ts.ClassDeclaration;
 
-function collect(sourceFile: ts.SourceFile, origin: TypeMember["origin"], into: Map<string, TypeMember>) {
+function collect(
+  sourceFile: ts.SourceFile,
+  origin: TypeMember["origin"],
+  into: Map<string, TypeMember>,
+) {
   const visitContainer = (container: Container) => {
     const className = container.name?.getText();
     if (!className) return;
@@ -169,7 +178,10 @@ function collect(sourceFile: ts.SourceFile, origin: TypeMember["origin"], into: 
 
       const nameNode = member.name;
       if (!nameNode) continue;
-      const memberName = ts.isIdentifier(nameNode) || ts.isStringLiteral(nameNode) ? nameNode.text : nameNode.getText();
+      const memberName =
+        ts.isIdentifier(nameNode) || ts.isStringLiteral(nameNode)
+          ? nameNode.text
+          : nameNode.getText();
       if (memberName.startsWith("_")) continue;
 
       const key = `${className}.${memberName}`;
@@ -245,7 +257,12 @@ async function main() {
     } catch {
       throw new Error(`Chưa có ${CACHE}/${file} — chạy \`node scripts/fetch-sources.ts\` trước`);
     }
-    const sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, /* setParentNodes */ true);
+    const sourceFile = ts.createSourceFile(
+      file,
+      text,
+      ts.ScriptTarget.Latest,
+      /* setParentNodes */ true,
+    );
     const before = members.size;
     collect(sourceFile, origin, members);
     ts.forEachChild(sourceFile, (n) => {
@@ -261,7 +278,9 @@ async function main() {
   console.log(`  member public    : ${all.length}`);
   console.log(`  interface/class  : ${containers}`);
   console.log(`  có code mẫu      : ${all.filter((m) => m.examples.length > 0).length}`);
-  console.log(`  có @param mô tả  : ${all.reduce((n, m) => n + m.params.filter((p) => p.description).length, 0)}`);
+  console.log(
+    `  có @param mô tả  : ${all.reduce((n, m) => n + m.params.filter((p) => p.description).length, 0)}`,
+  );
   console.log(`  @deprecated      : ${all.filter((m) => m.deprecated).length}`);
 
   // Spot-check: getByRole phải có signature và code mẫu.

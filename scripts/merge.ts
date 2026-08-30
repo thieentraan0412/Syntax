@@ -179,7 +179,10 @@ function mergeParams(a: TypeMember | undefined, b: DocMember | undefined): Candi
  * Xuất ra .ts chứ không .json để mọi chỗ (script chạy bằng node, app chạy bằng
  * Next) import cùng một kiểu, không vướng khác biệt về import attributes.
  */
-function renderFacts(candidates: Candidate[], meta: { generatedFrom: string; generatedAt: string }): string {
+function renderFacts(
+  candidates: Candidate[],
+  meta: { generatedFrom: string; generatedAt: string },
+): string {
   const slim = candidates.map((c) => ({
     key: c.key,
     title: c.title,
@@ -273,7 +276,11 @@ async function main() {
 
     // Bỏ member chỉ có trong types.d.ts mà docs không nhắc tới: thường là kiểu
     // nội bộ, event handler `on`/`off`, hoặc interface phụ trợ không phải API.
-    if (a && !b && !/^(Locator|Page|Frame|Browser|BrowserContext|BrowserType|Test|Expect)$/.test(a.className)) {
+    if (
+      a &&
+      !b &&
+      !/^(Locator|Page|Frame|Browser|BrowserContext|BrowserType|Test|Expect)$/.test(a.className)
+    ) {
       onlyA++;
       continue;
     }

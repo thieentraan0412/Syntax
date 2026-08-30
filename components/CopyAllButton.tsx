@@ -18,7 +18,7 @@ export function CopyAllButton({ noiDung, soMuc }: { noiDung: string; soMuc: numb
       onClick={chep}
       aria-live="polite"
       title={trangThai === "loi" ? "Trình duyệt không cho chép" : undefined}
-      className="cursor-pointer rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      className="glass glass-hover text-muted hover:text-accent focus-visible:outline-accent cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       {trangThai === "xong"
         ? "Đã chép ✓"

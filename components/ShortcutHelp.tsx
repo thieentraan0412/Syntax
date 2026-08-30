@@ -34,10 +34,10 @@ export default function ShortcutHelp({ onDong }: { onDong: () => void }) {
         if (e.target === hop.current) onDong();
       }}
       aria-label="Bảng phím tắt"
-      className="m-0 w-full max-w-md rounded-2xl border border-border bg-bg p-0 text-fg shadow-2xl backdrop:bg-black/45 sm:mx-auto sm:mt-[12vh]"
+      className="border-border bg-panel text-fg m-0 w-full max-w-md rounded-2xl border p-0 shadow-[var(--shadow-pop)] backdrop:bg-black/55 backdrop:backdrop-blur-sm sm:mx-auto sm:mt-[12vh]"
     >
       <div className="flex flex-col">
-        <h2 className="border-b border-border px-5 py-3 text-sm font-semibold uppercase tracking-wider text-muted">
+        <h2 className="border-border text-muted border-b px-5 py-3 text-sm font-semibold tracking-wider uppercase">
           Phím tắt
         </h2>
         <dl className="flex flex-col gap-2.5 px-5 py-4">
@@ -48,7 +48,7 @@ export default function ShortcutHelp({ onDong }: { onDong: () => void }) {
                 {p.phim.map((k) => (
                   <kbd
                     key={k}
-                    className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[11px]"
+                    className="border-border bg-surface-2 rounded-md border px-1.5 py-0.5 font-mono text-[11px]"
                   >
                     {k}
                   </kbd>

@@ -138,6 +138,37 @@ export type Param = {
   default?: string;
 };
 
+/**
+ * Ví dụ phụ — phần "xem thêm cho đã" của một entry.
+ *
+ * `code` của entry là ví dụ TỐI GIẢN: đúng một hình dạng cú pháp, đọc trong ba
+ * giây. Cái đó không thay thế được việc thấy hàm đó sống trong một bài test
+ * thật. Nên ngoài nó còn có 1–3 ví dụ dài hơn, phần lớn lấy tự động từ docs
+ * chính thức (xem scripts/build-examples.ts), có link về đúng mục nguồn.
+ */
+export type Example = {
+  /** Tiêu đề ngắn — với ví dụ tự động thì lấy từ tiêu đề mục trong docs. */
+  title: string;
+  code: string;
+  lang: "ts" | "bash";
+  /**
+   * 'api'   — docs/src/api/*.md, ví dụ ngắn ngay dưới chữ ký hàm
+   * 'guide' — docs/src/*.md, ví dụ dài ở tầng hướng dẫn
+   * 'tay'   — người viết
+   */
+  source: "api" | "guide" | "tay";
+  /** Link về đúng mục docs gốc. Ví dụ viết tay thì không có. */
+  url?: string;
+  /**
+   * Tên file mà đoạn code này thuộc về — `playwright.config.ts`,
+   * `tests/example.spec.ts`, `todo-page.ts`. Cùng một đoạn code, để trong config
+   * hay trong file test là hai chuyện khác, nên đây là nửa còn lại của ví dụ.
+   */
+  file?: string;
+  /** HTML mà ví dụ chạy trên đó — docs hay bày "HTML thế này thì locator thế kia". */
+  html?: string;
+};
+
 /** Một mục cheatsheet = một trang SSG. */
 export type CheatEntry = {
   /** kebab-case, duy nhất TRONG category, an toàn cho URL. -> /locators/get-by-role */
@@ -157,6 +188,8 @@ export type CheatEntry = {
    * Mặc định 'ts'. Nhóm CLI dùng 'bash'.
    */
   codeLang: "ts" | "bash";
+  /** Ví dụ dài hơn, phần lớn lấy tự động từ docs chính thức. */
+  examples?: Example[];
   params?: Param[];
   returns?: string;
   /** Phiên bản Playwright bắt đầu có API này, vd 'v1.34'. */

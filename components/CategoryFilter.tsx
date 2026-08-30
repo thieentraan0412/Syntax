@@ -24,11 +24,7 @@ export function CategoryFilter({
   if (coKetQua.length === 0) return null;
 
   return (
-    <div
-      role="group"
-      aria-label="Lọc theo nhóm"
-      className="flex flex-wrap gap-1.5"
-    >
+    <div role="group" aria-label="Lọc theo nhóm" className="flex flex-wrap gap-1.5">
       <Chip dangChon={dangChon === null} onClick={() => onChon(null)}>
         Tất cả <Dem>{tong}</Dem>
       </Chip>
@@ -57,10 +53,10 @@ function Chip({
       onClick={onClick}
       aria-pressed={dangChon}
       className={
-        "cursor-pointer rounded-full border px-3 py-1 text-[13px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent " +
-        (dangChon
-          ? "border-accent bg-accent text-accent-fg"
-          : "border-border text-muted hover:border-accent hover:text-accent")
+        "focus-visible:outline-accent cursor-pointer rounded-full border px-3 py-1 text-[13px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 " +
+        // Chip lọc không dùng `.glass-hover`: nó nhấc lên 2px khi rê chuột, mà
+        // cả hàng chip nhấp nhô theo con trỏ thì rối hơn là đẹp.
+        (dangChon ? "btn-accent font-medium" : "glass text-muted hover:text-accent")
       }
     >
       {children}

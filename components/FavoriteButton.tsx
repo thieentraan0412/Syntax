@@ -20,10 +20,8 @@ export function FavoriteButton({ muc }: { muc: MucGhim }) {
       aria-pressed={daGhim}
       title={daGhim ? "Bỏ ghim" : "Ghim mục này"}
       className={
-        "flex cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent " +
-        (daGhim
-          ? "border-accent text-accent"
-          : "border-border text-muted hover:border-accent hover:text-accent")
+        "focus-visible:outline-accent flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 " +
+        (daGhim ? "btn-accent" : "glass text-muted hover:text-accent")
       }
     >
       <span aria-hidden>{daGhim ? "★" : "☆"}</span>

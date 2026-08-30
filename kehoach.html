@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kế hoạch IDE Playwright</title>
+    <style>
+      /* ── Bảng màu lấy nguyên từ app/globals.css để trang này khớp với site ── */
+      :root {
+        --bg: #ffffff;
+        --surface: #f6f7f8;
+        --surface-2: #eceef0;
+        --border: #e2e5e8;
+        --fg: #16191d;
+        --muted: #5b636d;
+        --accent: #178620;
+        --accent-fg: #ffffff;
+        --ring: #2ead33;
+        --danger: #b42318;
+        --warn: #a86a00;
+        --code-bg: #f0f2f4;
+      }
+      :root[data-theme="dark"] {
+        --bg: #0c0e11;
+        --surface: #14171b;
+        --surface-2: #1c2026;
+        --border: #272c33;
+        --fg: #e7eaee;
+        --muted: #98a1ab;
+        --accent: #4ecf55;
+        --accent-fg: #06140a;
+        --ring: #4ecf55;
+        --danger: #ff8a7a;
+        --warn: #e0a83a;
+        --code-bg: #1c2026;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; scroll-padding-top: 5.5rem; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 400 16px/1.65 ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      code, pre, .mono {
+        font-family: ui-monospace, "Cascadia Code", "Geist Mono", Menlo, Consolas, monospace;
+      }
+      code {
+        background: var(--code-bg);
+        border-radius: 4px;
+        padding: 0.1em 0.36em;
+        font-size: 0.875em;
+      }
+      a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+      /* ── Header dính + thanh tiến độ ── */
+      header {
+        position: sticky; top: 0; z-index: 20;
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border);
+      }
+      .bar {
+        max-width: 60rem; margin: 0 auto; padding: 0.7rem 1.25rem;
+        display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+      }
+      .brand { font-weight: 600; letter-spacing: -0.01em; margin-right: auto; }
+      .brand span { color: var(--accent); }
+      .progress-wrap { display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; color: var(--muted); }
+      .track { width: 140px; height: 6px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+      .fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.25s ease; }
+      button.ghost {
+        background: var(--surface); color: var(--fg); border: 1px solid var(--border);
+        border-radius: 8px; padding: 0.3rem 0.65rem; font: inherit; font-size: 0.8rem; cursor: pointer;
+      }
+      button.ghost:hover { border-color: var(--ring); color: var(--accent); }
+
+      main { max-width: 60rem; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; }
+
+      h1 { font-size: clamp(1.7rem, 4vw, 2.3rem); line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 0.5rem; }
+      .lede { color: var(--muted); font-size: 1.02rem; margin: 0 0 2.5rem; max-width: 46rem; }
+      h2 {
+        font-size: 1.3rem; letter-spacing: -0.01em; margin: 3.5rem 0 1rem;
+        padding-top: 1.5rem; border-top: 1px solid var(--border);
+      }
+      h2:first-of-type { border-top: 0; padding-top: 0; margin-top: 2rem; }
+      h3 { font-size: 1.02rem; margin: 2rem 0 0.75rem; }
+      p { margin: 0 0 1rem; }
+
+      /* ── Ba kết luận mở đầu ── */
+      .verdicts { display: grid; gap: 0.9rem; margin: 0 0 1.5rem; }
+      .verdict {
+        display: grid; grid-template-columns: 2rem 1fr; gap: 0.9rem;
+        background: var(--surface); border: 1px solid var(--border);
+        border-left: 3px solid var(--danger); border-radius: 10px; padding: 1rem 1.1rem;
+      }
+      .verdict .n {
+        font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.15rem;
+        color: var(--danger); line-height: 1.4;
+      }
+      .verdict b { display: block; margin-bottom: 0.2rem; }
+      .verdict p { margin: 0; color: var(--muted); font-size: 0.93rem; }
+
+      .callout {
+        background: color-mix(in srgb, var(--accent) 9%, var(--bg));
+        border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+        border-radius: 10px; padding: 1rem 1.1rem; margin: 1.5rem 0;
+      }
+      .callout b { color: var(--accent); }
+
+      /* ── Bảng ── */
+      .scroll { overflow-x: auto; margin: 1.25rem 0; }
+      table { border-collapse: collapse; width: 100%; min-width: 34rem; font-size: 0.9rem; }
+      th, td { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+      th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+      tbody tr:hover { background: var(--surface); }
+
+      /* ── Sơ đồ kiến trúc ── */
+      pre.diagram {
+        background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+        padding: 1.1rem; overflow-x: auto; font-size: 0.8rem; line-height: 1.5; margin: 1.25rem 0;
+      }
+
+      /* ── Checklist ── */
+      .phase {
+        border: 1px solid var(--border); border-radius: 12px;
+        background: var(--surface); margin: 1rem 0; overflow: hidden;
+      }
+      .phase > summary {
+        cursor: pointer; list-style: none; padding: 0.9rem 1.1rem;
+        display: flex; align-items: center; gap: 0.8rem; font-weight: 600;
+      }
+      .phase > summary::-webkit-details-marker { display: none; }
+      .phase > summary::before {
+        content: "▸"; color: var(--muted); transition: transform 0.15s ease; display: inline-block;
+      }
+      .phase[open] > summary::before { transform: rotate(90deg); }
+      .tag {
+        font: 600 0.7rem/1 ui-monospace, monospace; letter-spacing: 0.06em;
+        background: var(--accent); color: var(--accent-fg);
+        border-radius: 5px; padding: 0.3rem 0.45rem;
+      }
+      .tag.crit { background: var(--danger); color: var(--bg); }
+      .count { margin-left: auto; font: 400 0.8rem/1 ui-monospace, monospace; color: var(--muted); }
+      .phase ul { list-style: none; margin: 0; padding: 0 1.1rem 1rem; }
+      .phase li {
+        display: grid; grid-template-columns: 1.15rem 1fr; gap: 0.7rem;
+        padding: 0.55rem 0; border-top: 1px solid var(--border); font-size: 0.93rem;
+      }
+      .phase li input {
+        appearance: none; width: 1.05rem; height: 1.05rem; margin-top: 0.32rem;
+        border: 1.5px solid var(--border); border-radius: 5px; background: var(--bg); cursor: pointer;
+      }
+      .phase li input:hover { border-color: var(--ring); }
+      .phase li input:checked { background: var(--accent); border-color: var(--accent); }
+      .phase li input:checked::after {
+        content: "✓"; display: block; color: var(--accent-fg);
+        font-size: 0.72rem; font-weight: 700; text-align: center; line-height: 0.9rem;
+      }
+      .phase li input:checked + label { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--border); }
+      .phase li label { cursor: pointer; }
+      .phase li .why { display: block; color: var(--muted); font-size: 0.84rem; margin-top: 0.15rem; }
+
+      /* ── Định nghĩa xong ── */
+      ol.done { padding-left: 1.3rem; }
+      ol.done li { margin-bottom: 0.5rem; }
+
+      footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 4rem; }
+
+      @media (max-width: 560px) {
+        .brand span:last-child { display: none; }
+        .track { width: 90px; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="bar">
+        <div class="brand"><span>Playwright</span> IDE — kế hoạch</div>
+        <div class="progress-wrap">
+          <span class="track"><span class="fill" id="fill"></span></span>
+          <span class="mono" id="pct">0 / 0</span>
+        </div>
+        <button class="ghost" id="theme">Sáng / Tối</button>
+        <button class="ghost" id="reset">Xoá đánh dấu</button>
+      </div>
+    </header>
+
+    <main>
+      <h1>IDE chạy test Playwright trên trình duyệt</h1>
+      <p class="lede">
+        Đánh giá source <code>playwright-cheatsheet</code> hiện tại và checklist thực thi.
+        Bản song song của <code>kehoach.md</code> — tick được, tự lưu vào trình duyệt.
+      </p>
+
+      <h2>0. Kết luận trước, giải thích sau</h2>
+      <div class="verdicts">
+        <div class="verdict">
+          <div class="n">1</div>
+          <div>
+            <b>Playwright không chạy được trong trình duyệt.</b>
+            <p>
+              Nó cần spawn process, ghi file và điều khiển một binary Chromium thật.
+              "IDE chạy Playwright trên trình duyệt" thực chất là: <em>soạn thảo</em> trên
+              trình duyệt, <em>thực thi</em> trên server. WebContainer/WASM không cứu được —
+              chúng chạy Node được, chạy Chromium thì không.
+            </p>
+          </div>
+        </div>
+        <div class="verdict">
+          <div class="n">2</div>
+          <div>
+            <b>Repo hiện tại là site tĩnh 100%.</b>
+            <p>
+              <code>output: "export"</code> trong <code>next.config.ts</code>. Ở chế độ này Next.js
+              liệt kê rõ trong mục <em>Unsupported Features</em>: "Route Handlers that rely on Request".
+              Không có <code>POST</code> thì không có nút RUN. Phải chọn: bỏ static export,
+              hoặc tách IDE ra origin riêng.
+            </p>
+          </div>
+        </div>
+        <div class="verdict">
+          <div class="n">3</div>
+          <div>
+            <b>Vercel serverless không phải chỗ chạy <code>npx playwright test</code>.</b>
+            <p>
+              Filesystem chỉ ghi được <code>/tmp</code> và bay sau mỗi lần chạy; bundle có trần
+              dung lượng trong khi browser của Playwright nặng hàng trăm MB; Firefox/WebKit
+              gần như bất khả thi. Kế hoạch cũ đặt "tách runner ra Docker" ở Phase 9 —
+              nên đảo lại và tách ngay từ đầu, làm hai lần thì phí.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <b>Khuyến nghị.</b> Next.js trên Vercel làm IDE + API mỏng, gọi sang một
+        <b>runner riêng chạy Docker image chính thức của Playwright</b>.
+        Ở MVP: không Redis, không BullMQ, không Kubernetes.
+      </div>
+
+      <h2>1. Đánh giá source hiện tại</h2>
+
+      <h3>1.1 Hiện trạng</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Hạng mục</th><th>Giá trị</th></tr></thead>
+          <tbody>
+            <tr><td>Framework</td><td>Next.js 16.3.2, React 19.2.8, App Router</td></tr>
+            <tr><td>Chế độ build</td><td><code>output: "export"</code> → 341 file HTML tĩnh trong <code>out/</code></td></tr>
+            <tr><td>Dữ liệu</td><td>322 entry, 15 nhóm, sinh từ <code>playwright-core@1.62.1</code></td></tr>
+            <tr><td>Search</td><td>Fuse.js client-side, index 93 KB, p95 ~14.8 ms</td></tr>
+            <tr><td>Tô màu code</td><td>Shiki, chạy <b>hoàn toàn lúc build</b> (Server Component)</td></tr>
+            <tr><td>Theme</td><td>CSS variable + <code>data-theme</code>, có anti-flash script inline</td></tr>
+            <tr><td>Playwright</td><td><code>@playwright/test@1.62.1</code> là devDependency, <b>chưa có <code>playwright.config.ts</code></b></td></tr>
+            <tr><td>Pipeline</td><td>9 script: fetch → extract → merge → validate → typecheck → index</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Chất lượng code trên mặt bằng chung: ngân sách bundle rõ ràng, comment giải thích
+        <em>lý do</em> chứ không mô tả lại code, dữ liệu tách "phần máy sinh"
+        (<code>data/facts.ts</code>) khỏi "phần người biên tập" (<code>data/NN-*.ts</code>).
+        Gõ sai tên API là vỡ lúc build chứ không im lặng ra trang trống.
+      </p>
+
+      <h3>1.2 Tài sản tái dùng được — lý do nên xây IDE ở đây thay vì repo mới</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Tài sản</th><th>Dùng vào việc gì trong IDE</th></tr></thead>
+          <tbody>
+            <tr><td>322 entry + code mẫu đã qua <code>tsc</code></td><td>Thư viện snippet chèn thẳng vào editor. Đây là thứ đối thủ không có.</td></tr>
+            <tr><td><code>search-index.json</code> + <code>use-search.ts</code></td><td>Command palette <code>Ctrl+K</code> trong editor: gõ "getByRole" → chèn ví dụ.</td></tr>
+            <tr><td><code>lib/local-store.ts</code></td><td>Lưu draft / test case ở localStorage — <b>hoãn được database vài phase</b>.</td></tr>
+            <tr><td>Theme tokens ở <code>globals.css</code></td><td>Cấp thẳng cho theme của editor, không phải chế bảng màu mới.</td></tr>
+            <tr><td><code>use-copy</code>, <code>use-list-nav</code>, <code>ShortcutHelp</code></td><td>UX bàn phím đã có quy ước sẵn, IDE nối tiếp chứ không phát minh lại.</td></tr>
+            <tr><td><code>@playwright/test@1.62.1</code> đã ghim</td><td><b>Ràng buộc</b>: image runner phải ghim đúng version này, không thì ví dụ chạy ra kết quả khác.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>1.3 Năm xung đột kiến trúc phải xử lý</h3>
+      <div class="verdicts">
+        <div class="verdict">
+          <div class="n">①</div>
+          <div>
+            <b><code>output: "export"</code> chặn API.</b>
+            <p>
+              <b>Cách A (khuyến nghị):</b> bỏ <code>output: "export"</code>, deploy Vercel bình thường.
+              341 trang vẫn được prerender tĩnh vì đã có <code>generateStaticParams()</code> +
+              <code>dynamicParams = false</code>. Mất khả năng "deploy lên CDN bất kỳ", đổi lấy backend — đáng.
+              <b>Cách B:</b> giữ site tĩnh, IDE ở origin khác → CORS, hai lần deploy, không chia sẻ layout.
+            </p>
+          </div>
+        </div>
+        <div class="verdict">
+          <div class="n">②</div>
+          <div>
+            <b><code>trailingSlash: true</code> là bẫy cho POST.</b>
+            <p>
+              Next sẽ redirect <code>/api/run</code> → <code>/api/run/</code>, và nhiều client
+              <b>mất body khi bị redirect</b> trên POST. Hoặc luôn gọi URL có dấu <code>/</code> cuối,
+              hoặc đặt <code>skipTrailingSlashRedirect</code>. Loại lỗi mất nửa ngày để tìm.
+            </p>
+          </div>
+        </div>
+        <div class="verdict">
+          <div class="n">③</div>
+          <div>
+            <b>Shiki không được lọt vào bundle client.</b>
+            <p>
+              <code>lib/highlight.ts</code> đã ghi rõ cảnh báo này. Trang IDE là Client Component;
+              import nhầm <code>CodeBlock</code> vào đó là kéo vài MB grammar xuống trình duyệt.
+              Editor phải dùng bộ tô màu riêng.
+            </p>
+          </div>
+        </div>
+        <div class="verdict">
+          <div class="n">④</div>
+          <div>
+            <b>Monaco nặng gấp nhiều lần toàn bộ site hiện tại.</b>
+            <p>
+              Site đang tự hào vì trang chi tiết "không cần một byte JS nào"; Monaco ~2–5 MB.
+              Bắt buộc <code>next/dynamic</code> với <code>ssr: false</code>, chỉ ở route <code>/ide</code>,
+              tuyệt đối không đặt trong <code>app/layout.tsx</code>.
+            </p>
+          </div>
+        </div>
+        <div class="verdict">
+          <div class="n">⑤</div>
+          <div>
+            <b>Chạy code người dùng gửi lên = RCE có chủ đích.</b>
+            <p>
+              <code>npx playwright test</code> trên file do người lạ soạn nghĩa là họ chạy Node tuỳ ý
+              trong hạ tầng của bạn: <code>process.env</code>, đọc file, gọi API nội bộ, đào coin,
+              dùng server của bạn tấn công bên thứ ba. Kế hoạch cũ xếp Security ở
+              <b>Phase 7</b> — quá muộn. Đây là <b>P0</b>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <h2>2. Chọn chỗ chạy runner</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Phương án</th><th>Được</th><th>Mất</th><th>Kết luận</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>Vercel Function</b> + <code>playwright-core</code> + <code>@sparticuz/chromium</code></td>
+              <td>Không thêm hạ tầng</td>
+              <td>Chỉ Chromium headless; không dùng được test runner thật (fixtures, <code>expect</code> auto-retry, HTML report); trace/video khó; cold start nặng</td>
+              <td>Hợp demo "goto + screenshot", <b>không hợp một IDE</b></td>
+            </tr>
+            <tr>
+              <td><b>Container riêng</b> từ <code>mcr.microsoft.com/playwright</code> (Fly.io / Railway / Render / VPS)</td>
+              <td>Test runner đầy đủ, cả 3 browser, trace + video + report, kiểm soát được sandbox</td>
+              <td>Thêm một dịch vụ phải vận hành, tốn tiền chạy nền</td>
+              <td><b>Khuyến nghị</b></td>
+            </tr>
+            <tr>
+              <td><b>Browser-as-a-service</b> (Browserbase, Browserless…)</td>
+              <td>Không phải nuôi browser</td>
+              <td>Vẫn cần chỗ chạy process Node của test runner → không giải quyết vấn đề chính</td>
+              <td>Chỉ là bổ trợ</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre class="diagram">Trình duyệt (Monaco + snippet từ 322 entry)
+        │  POST /api/runs        { code, browser }
+        ▼
+Next.js trên Vercel  ── xác thực, rate-limit, validate ──┐
+        │  GET /api/runs/:id/stream  (SSE log realtime)  │
+        ▼                                                ▼
+Runner service (Docker, ghim đúng @playwright/test 1.62.1)
+        │  container dùng-một-lần: non-root, fs read-only trừ /tmp,
+        │  giới hạn CPU/RAM/pids, timeout cứng, chặn egress nội bộ
+        ▼
+Chromium / Firefox / WebKit  →  site cần test
+        │
+        ▼
+Artifact (screenshot, video.webm, trace.zip, report) → object storage (R2/S3)</pre>
+
+      <h2>3. Checklist</h2>
+      <p style="color: var(--muted); font-size: 0.92rem">
+        Tick trực tiếp trên trang — trạng thái lưu vào trình duyệt này. Thứ tự trong mỗi
+        phase là thứ tự nên làm.
+      </p>
+
+      <details class="phase" open>
+        <summary><span class="tag crit">P0</span> Gỡ chốt chặn kiến trúc <span class="count"></span></summary>
+        <ul>
+          <li><input type="checkbox" id="p0-1" /><label for="p0-1">Quyết định dứt khoát: bỏ <code>output: "export"</code> hay tách origin riêng.<span class="why">Ghi lại lý do — mọi thứ sau đó phụ thuộc vào lựa chọn này.</span></label></li>
+          <li><input type="checkbox" id="p0-2" /><label for="p0-2">Bỏ <code>output: "export"</code>, chạy <code>npm run build</code>, xác nhận 341 trang vẫn prerender tĩnh.<span class="why">Xem log build: phải là ○ / ●, không được thành ƒ.</span></label></li>
+          <li><input type="checkbox" id="p0-3" /><label for="p0-3">Kiểm tra <code>images: { unoptimized: true }</code> còn cần không sau khi bỏ export.</label></li>
+          <li><input type="checkbox" id="p0-4" /><label for="p0-4">Xử lý bẫy <code>trailingSlash: true</code> với POST.<span class="why">Luôn gọi <code>/api/runs/</code>, hoặc thêm <code>skipTrailingSlashRedirect</code>. Viết test chứng minh body không bị mất.</span></label></li>
+          <li><input type="checkbox" id="p0-5" /><label for="p0-5">Tạo <code>playwright.config.ts</code> cho chính repo này (hiện chưa có).<span class="why">Dùng để test E2E cho IDE — tách hẳn khỏi config sinh cho user.</span></label></li>
+          <li><input type="checkbox" id="p0-6" /><label for="p0-6">Chốt version Playwright ở runner = <b>1.62.1</b>, đúng bằng <code>data/facts.ts</code>.<span class="why">Ghi ràng buộc vào <code>AGENTS.md</code> để lần bump version sau không lệch.</span></label></li>
+          <li><input type="checkbox" id="p0-7" /><label for="p0-7">Viết <code>THREAT-MODEL.md</code>: user code được phép và không được phép chạm những gì.</label></li>
+        </ul>
+      </details>
+
+      <details class="phase" open>
+        <summary><span class="tag crit">P1</span> Sandbox runner <span class="count"></span></summary>
+        <ul>
+          <li><input type="checkbox" id="p1-1" /><label for="p1-1">Dockerfile từ <code>mcr.microsoft.com/playwright:v1.62.1-noble</code>.<span class="why">Xác minh tag tồn tại trên registry trước.</span></label></li>
+          <li><input type="checkbox" id="p1-2" /><label for="p1-2">Chạy container <b>non-root</b>, <code>--read-only</code>, chỉ <code>/tmp</code> ghi được (tmpfs có giới hạn size).</label></li>
+          <li><input type="checkbox" id="p1-3" /><label for="p1-3">Giới hạn tài nguyên: <code>--memory</code>, <code>--cpus</code>, <code>--pids-limit</code>, <code>--security-opt no-new-privileges</code>.</label></li>
+          <li><input type="checkbox" id="p1-4" /><label for="p1-4">Timeout cứng hai lớp: timeout trong config + <code>docker kill</code> từ ngoài.</label></li>
+          <li><input type="checkbox" id="p1-5" /><label for="p1-5">Chặn egress nội bộ: <code>169.254.169.254</code>, <code>127.0.0.0/8</code>, <code>10/8</code>, <code>172.16/12</code>, <code>192.168/16</code>.<span class="why">Kiểm chứng bằng test cố tình gọi vào metadata endpoint.</span></label></li>
+          <li><input type="checkbox" id="p1-6" /><label for="p1-6">Container không có biến môi trường chứa secret; secret giữ ở tầng ngoài.</label></li>
+          <li><input type="checkbox" id="p1-7" /><label for="p1-7">Container dùng một lần — huỷ sau mỗi run, không tái sử dụng giữa các user.</label></li>
+          <li><input type="checkbox" id="p1-8" /><label for="p1-8">Kiểm thử phá hoại: fork bomb, <code>while(true)</code>, ăn hết RAM, gọi metadata, đọc <code>/etc/passwd</code>, <code>process.env</code>, spawn process con.<span class="why">Cả 7 phải bị chặn. Đây là điều kiện để mở public.</span></label></li>
+          <li><input type="checkbox" id="p1-9" /><label for="p1-9">Rate limit theo IP/user + hàng đợi có trần (từ chối khi đầy, không xếp hàng vô hạn).</label></li>
+        </ul>
+      </details>
+
+      <details class="phase">
+        <summary><span class="tag">P2</span> Trang <code>/ide</code> và editor <span class="count"></span></summary>
+        <ul>
+          <li><input type="checkbox" id="p2-1" /><label for="p2-1">Route <code>app/ide/page.tsx</code>, link từ header nhưng không đụng vào layout gốc.</label></li>
+          <li><input type="checkbox" id="p2-2" /><label for="p2-2">Chọn editor: <b>Monaco</b> (autocomplete thật, nặng) hay <b>CodeMirror 6</b> (~200 KB, không type-check).<span class="why">Khuyến nghị Monaco — autocomplete <code>page.</code> là giá trị cốt lõi của một IDE Playwright.</span></label></li>
+          <li><input type="checkbox" id="p2-3" /><label for="p2-3">Nạp editor bằng <code>next/dynamic</code> + <code>ssr: false</code>. Đo bundle trước/sau, ghi số vào PR.</label></li>
+          <li><input type="checkbox" id="p2-4" /><label for="p2-4">Nạp <code>.d.ts</code> của <code>@playwright/test</code> vào Monaco (<code>addExtraLib</code>).<span class="why">Để gõ <code>page.</code> ra gợi ý thật, không phải gợi ý JS chung chung.</span></label></li>
+          <li><input type="checkbox" id="p2-5" /><label for="p2-5">Map theme editor vào CSS variable sẵn có; đổi sáng/tối không cần reload.</label></li>
+          <li><input type="checkbox" id="p2-6" /><label for="p2-6">Layout 3 khung: editor | console | artifact, kéo giãn được, nhớ tỉ lệ ở localStorage.</label></li>
+          <li><input type="checkbox" id="p2-7" /><label for="p2-7"><b>Command palette <code>Ctrl+K</code> tái dùng <code>use-search.ts</code></b> → chọn entry → chèn code mẫu.<span class="why">Tính năng khác biệt của sản phẩm. Đừng để tới cuối.</span></label></li>
+          <li><input type="checkbox" id="p2-8" /><label for="p2-8">Lưu draft vào localStorage qua <code>createLocalStore</code> — chưa cần database.</label></li>
+        </ul>
+      </details>
+
+      <details class="phase">
+        <summary><span class="tag">P3</span> Chạy được một test <span class="count"></span></summary>
+        <ul>
+          <li><input type="checkbox" id="p3-1" /><label for="p3-1"><code>POST /api/runs</code> → validate input (giới hạn độ dài code, MVP chỉ nhận <code>chromium</code>), trả <code>runId</code>.</label></li>
+          <li><input type="checkbox" id="p3-2" /><label for="p3-2">Runner ghi code vào spec tạm, sinh <code>playwright.config.ts</code> <b>do server soạn</b>, chạy test, thu stdout/stderr.<span class="why">Không bao giờ lấy config từ user — đó là một đường thoát sandbox.</span></label></li>
+          <li><input type="checkbox" id="p3-3" /><label for="p3-3">Dùng reporter <code>json</code> để lấy trạng thái có cấu trúc, không parse stdout bằng regex.</label></li>
+          <li><input type="checkbox" id="p3-4" /><label for="p3-4"><code>GET /api/runs/:id</code> trả <code>{ status, duration, stats, error }</code>.</label></li>
+          <li><input type="checkbox" id="p3-5" /><label for="p3-5">UI hiện PASS/FAIL + thời gian + thông điệp lỗi (expected/actual) đã format tử tế.</label></li>
+          <li><input type="checkbox" id="p3-6" /><label for="p3-6">Xử lý đủ trường hợp lỗi: lỗi cú pháp TS, test timeout, browser crash, runner không phản hồi, hàng đợi đầy.<span class="why">Mỗi cái một thông báo riêng — không nuốt thành "Something went wrong".</span></label></li>
+        </ul>
+      </details>
+
+      <details class="phase">
+        <summary><span class="tag">P4</span> Log realtime + artifact <span class="count"></span></summary>
+        <ul>
+          <li><input type="checkbox" id="p4-1" /><label for="p4-1">SSE <code>GET /api/runs/:id/stream</code> đẩy log từng dòng.<span class="why">SSE là đủ ở giai đoạn này, chưa cần WebSocket.</span></label></li>
+          <li><input type="checkbox" id="p4-2" /><label for="p4-2">Xử lý mất kết nối: client tự nối lại, server đệm log để không mất đoạn đầu.</label></li>
+          <li><input type="checkbox" id="p4-3" /><label for="p4-3">Bật <code>screenshot</code>, <code>video</code>, <code>trace</code> ở chế độ <code>only-on-failure</code> / <code>retain-on-failure</code>.</label></li>
+          <li><input type="checkbox" id="p4-4" /><label for="p4-4">Upload artifact lên object storage (R2/S3), trả signed URL có hạn, đặt TTL tự xoá.</label></li>
+          <li><input type="checkbox" id="p4-5" /><label for="p4-5">Xem screenshot và video <code>.webm</code> inline ngay trong IDE.</label></li>
+          <li><input type="checkbox" id="p4-6" /><label for="p4-6">Trace: tải <code>.zip</code> + link mở bằng <code>trace.playwright.dev</code> (hoặc tự host trace viewer).</label></li>
+          <li><input type="checkbox" id="p4-7" /><label for="p4-7">Dọn rác: cron xoá artifact quá hạn + giới hạn dung lượng theo user.</label></li>
+        </ul>
+      </details>
+
+      <details class="phase">
+        <summary><span class="tag">P5</span> Quản lý test case <span class="count"></span></summary>
+        <ul>
+          <li><input type="checkbox" id="p5-1" /><label for="p5-1">Database (Postgres/Supabase): <code>users</code>, <code>projects</code>, <code>test_cases</code>, <code>test_runs</code>, <code>artifacts</code>.</label></li>
+          <li><input type="checkbox" id="p5-2" /><label for="p5-2">Auth — bắt buộc trước khi mở công khai.<span class="why">Cho chạy code ẩn danh là mời gọi lạm dụng.</span></label></li>
+          <li><input type="checkbox" id="p5-3" /><label for="p5-3">CRUD test case + đổi tên + nhân bản.</label></li>
+          <li><input type="checkbox" id="p5-4" /><label for="p5-4">Lịch sử chạy: danh sách run, xem lại kết quả và artifact cũ.</label></li>
+          <li><input type="checkbox" id="p5-5" /><label for="p5-5">Quota theo user: số run/ngày, tổng thời gian chạy, dung lượng artifact.</label></li>
+        </ul>
+      </details>
+
+      <details class="phase">
+        <summary><span class="tag">P6</span> Mở rộng <span class="count"></span></summary>
+        <ul>
+          <li><input type="checkbox" id="p6-1" /><label for="p6-1">Firefox + WebKit.<span class="why">Image chính thức đã có sẵn cả ba — chỉ còn là chuyện tài nguyên.</span></label></li>
+          <li><input type="checkbox" id="p6-2" /><label for="p6-2">Chạy song song nhiều run — thêm hàng đợi thật khi và chỉ khi đo được nghẽn.</label></li>
+          <li><input type="checkbox" id="p6-3" /><label for="p6-3">Nhiều file trong một project, import lẫn nhau (Page Object Model).</label></li>
+          <li><input type="checkbox" id="p6-4" /><label for="p6-4">Nhúng codegen / recorder.</label></li>
+          <li><input type="checkbox" id="p6-5" /><label for="p6-5">Chia sẻ run bằng link công khai.</label></li>
+        </ul>
+      </details>
+
+      <details class="phase">
+        <summary><span class="tag">↺</span> Con số cần tự kiểm chứng <span class="count"></span></summary>
+        <ul>
+          <li><input type="checkbox" id="v-1" /><label for="v-1">Trần thời gian chạy của Vercel Function trên gói đang dùng.</label></li>
+          <li><input type="checkbox" id="v-2" /><label for="v-2">Trần dung lượng bundle của Vercel Function, so với dung lượng browser của Playwright.</label></li>
+          <li><input type="checkbox" id="v-3" /><label for="v-3">Cold start thực tế của runner container ở nhà cung cấp đã chọn.</label></li>
+          <li><input type="checkbox" id="v-4" /><label for="v-4">Giá mỗi phút chạy container × số run dự kiến mỗi ngày.</label></li>
+          <li><input type="checkbox" id="v-5" /><label for="v-5">Tag image <code>mcr.microsoft.com/playwright</code> tương ứng đúng phiên bản 1.62.1.</label></li>
+        </ul>
+      </details>
+
+      <h2>4. Bảng rủi ro</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Rủi ro</th><th>Mức</th><th>Xử lý</th></tr></thead>
+          <tbody>
+            <tr><td>RCE từ code người dùng</td><td style="color: var(--danger); font-weight: 600">Nghiêm trọng</td><td>Toàn bộ P1. Không mở public trước khi kiểm thử phá hoại đạt.</td></tr>
+            <tr><td>Chi phí runner chạy nền</td><td style="color: var(--warn)">Cao</td><td>Scale-to-zero, quota mỗi user, timeout ngắn.</td></tr>
+            <tr><td>User test site bất hợp pháp qua hạ tầng của bạn</td><td style="color: var(--warn)">Cao</td><td>Log đầy đủ, allowlist/blocklist domain, ToS, quota.</td></tr>
+            <tr><td>Monaco phá ngân sách bundle</td><td>Trung bình</td><td>Dynamic import, route-scoped, đo bundle mỗi PR.</td></tr>
+            <tr><td>Vercel timeout khi proxy run dài</td><td>Trung bình</td><td>Không proxy đồng bộ: trả <code>runId</code> ngay, kết quả qua SSE/polling.</td></tr>
+            <tr><td>Lệch version giữa cheatsheet và runner</td><td>Trung bình</td><td>Ghim 1.62.1 hai đầu, thêm bước CI so khớp.</td></tr>
+            <tr><td>Bỏ <code>output: export</code> làm hỏng 341 trang</td><td>Thấp</td><td>Đã có <code>generateStaticParams</code> + <code>dynamicParams=false</code>; xác minh ở P0.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>5. Định nghĩa "MVP xong"</h2>
+      <p>Đủ cả sáu gạch đầu dòng mới coi là xong:</p>
+      <ol class="done">
+        <li>Người dùng mở <code>/ide</code>, thấy editor có sẵn một test mẫu.</li>
+        <li><code>Ctrl+K</code> → tìm <code>getByRole</code> → code mẫu được chèn vào editor.</li>
+        <li>Bấm RUN → log chạy hiện dần theo thời gian thực.</li>
+        <li>Test fail → thông điệp lỗi rõ ràng + screenshot + video + link trace.</li>
+        <li>Reload trang → code vẫn còn (localStorage).</li>
+        <li><b>Đã chạy đủ bộ kiểm thử phá hoại ở P1 và tất cả đều bị chặn.</b></li>
+      </ol>
+      <p>
+        Mọi thứ khác — Firefox/WebKit, database, project, chạy song song, Redis, BullMQ —
+        đều ở <b>sau</b> vạch này.
+      </p>
+
+      <h2>6. Việc làm ngay</h2>
+      <ol class="done">
+        <li>Chốt phương án ở P0 (bỏ static export hay tách origin).</li>
+        <li>Bỏ <code>output: "export"</code>, chạy <code>npm run build</code>, xác nhận vẫn ra 341 trang tĩnh.</li>
+        <li>Dựng <code>Dockerfile</code> runner + chạy được <code>npx playwright test</code> trên một file cứng.</li>
+        <li>Chỉ khi bước 3 xong mới bắt đầu đụng vào Monaco.</li>
+      </ol>
+
+      <footer>
+        Bản song song của <code>kehoach.md</code> · viết 2026-08-29 · thay thế <code>compiler.md</code> đã xoá.
+      </footer>
+    </main>
+
+    <script>
+      (function () {
+        var KEY = "kehoach-ide-v1";
+        var boxes = Array.prototype.slice.call(document.querySelectorAll('.phase input[type="checkbox"]'));
+
+        function read() {
+          try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { return {}; }
+        }
+        function write(state) {
+          try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+        }
+
+        function refresh() {
+          var done = boxes.filter(function (b) { return b.checked; }).length;
+          document.getElementById("fill").style.width = boxes.length ? (done / boxes.length) * 100 + "%" : "0%";
+          document.getElementById("pct").textContent = done + " / " + boxes.length;
+
+          // Đếm riêng cho từng phase, hiện ngay trên summary.
+          Array.prototype.forEach.call(document.querySelectorAll(".phase"), function (ph) {
+            var all = ph.querySelectorAll('input[type="checkbox"]');
+            var n = ph.querySelectorAll('input[type="checkbox"]:checked').length;
+            var slot = ph.querySelector(".count");
+            if (slot) slot.textContent = n + "/" + all.length;
+          });
+        }
+
+        var state = read();
+        boxes.forEach(function (b) {
+          if (state[b.id]) b.checked = true;
+          b.addEventListener("change", function () {
+            var s = read();
+            if (b.checked) s[b.id] = 1; else delete s[b.id];
+            write(s);
+            refresh();
+          });
+        });
+        refresh();
+
+        document.getElementById("reset").addEventListener("click", function () {
+          if (!confirm("Xoá toàn bộ đánh dấu?")) return;
+          write({});
+          boxes.forEach(function (b) { b.checked = false; });
+          refresh();
+        });
+
+        // Theme: cùng quy ước `data-theme` với site chính.
+        var TKEY = "theme";
+        try {
+          var saved = localStorage.getItem(TKEY);
+          if (saved === "light" || saved === "dark") document.documentElement.setAttribute("data-theme", saved);
+        } catch (e) {}
+        document.getElementById("theme").addEventListener("click", function () {
+          var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", next);
+          try { localStorage.setItem(TKEY, next); } catch (e) {}
+        });
+      })();
+    </script>
+  </body>
+</html>

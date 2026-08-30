@@ -81,11 +81,12 @@ export default function HeaderKetQua({
   const daGo = query.trim() !== "";
   const tong = Object.values(s.countByCategory).reduce((a, b) => a + b, 0);
 
-  if (!daGo) return <ChuaGo ganDay={ganDay} ghim={ghim} onChonGanDay={onChonGanDay} onDong={onDong} />;
+  if (!daGo)
+    return <ChuaGo ganDay={ganDay} ghim={ghim} onChonGanDay={onChonGanDay} onDong={onDong} />;
 
   if (s.status === "error") {
     return (
-      <p className="px-2 py-6 text-center text-sm text-muted">
+      <p className="text-muted px-2 py-6 text-center text-sm">
         Không tải được dữ liệu tìm kiếm{s.error ? ` (${s.error.message})` : ""}. Bấm lại vào ô để
         thử lần nữa.
       </p>
@@ -123,7 +124,7 @@ export default function HeaderKetQua({
       {s.hits.length === 0 && !s.isStale && s.status === "ready" && (
         <div className="flex flex-col gap-2 px-2 py-2">
           <p className="text-sm">
-            Không có kết quả cho <span className="font-mono">{query.trim()}</span>.
+            Không có kết quả cho <span className="text-accent font-mono">{query.trim()}</span>.
           </p>
           <Suggestions items={s.suggestions} />
         </div>
@@ -146,7 +147,7 @@ function ChuaGo({
 }) {
   if (ganDay.length === 0 && ghim.length === 0) {
     return (
-      <p className="px-2 py-6 text-center text-sm text-muted">
+      <p className="text-muted px-2 py-6 text-center text-sm">
         Gõ để tìm trong 322 cú pháp Playwright.
       </p>
     );
@@ -156,14 +157,16 @@ function ChuaGo({
     <div className="flex flex-col gap-4">
       {ghim.length > 0 && (
         <section className="flex flex-col gap-1.5">
-          <h2 className="px-2 text-xs font-semibold uppercase tracking-wider text-muted">Đã ghim</h2>
+          <h2 className="text-muted px-2 text-xs font-semibold tracking-wider uppercase">
+            Đã ghim
+          </h2>
           <ul className="flex flex-col gap-0.5">
             {ghim.map((m) => (
               <li key={`${m.c}/${m.i}`}>
                 <Link
                   href={hrefGhim(m)}
                   onClick={onDong}
-                  className="block wrap-anywhere rounded-lg px-2 py-1.5 font-mono text-sm transition-colors hover:bg-surface hover:text-accent"
+                  className="hover:bg-surface-2 hover:text-accent block rounded-lg px-2 py-1.5 font-mono text-sm wrap-anywhere transition-colors"
                 >
                   {m.t}
                 </Link>
@@ -175,12 +178,12 @@ function ChuaGo({
 
       {ganDay.length > 0 && (
         <section className="flex flex-col gap-1.5">
-          <h2 className="flex items-center justify-between px-2 text-xs font-semibold uppercase tracking-wider text-muted">
+          <h2 className="text-muted flex items-center justify-between px-2 text-xs font-semibold tracking-wider uppercase">
             Tìm gần đây
             <button
               type="button"
               onClick={() => GAN_DAY.xoaHet()}
-              className="cursor-pointer font-normal normal-case tracking-normal underline-offset-2 hover:text-accent hover:underline"
+              className="hover:text-accent cursor-pointer font-normal tracking-normal normal-case underline-offset-2 hover:underline"
             >
               xoá
             </button>
@@ -191,7 +194,7 @@ function ChuaGo({
                 <button
                   type="button"
                   onClick={() => onChonGanDay(q)}
-                  className="cursor-pointer rounded-full border border-border px-3 py-1 text-[13px] text-muted transition-colors hover:border-accent hover:text-accent"
+                  className="glass text-muted hover:text-accent cursor-pointer rounded-full px-3 py-1 text-[13px] transition-colors"
                 >
                   {q}
                 </button>

@@ -10,8 +10,8 @@
  */
 import { createHighlighter, type Highlighter } from "shiki";
 
-/** Chỉ nạp đúng thứ cần. Bundle đầy đủ của Shiki có ~200 ngôn ngữ, dùng 2. */
-const LANGS = ["typescript", "bash"] as const;
+/** Chỉ nạp đúng thứ cần. Bundle đầy đủ của Shiki có ~200 ngôn ngữ, dùng 3. */
+const LANGS = ["typescript", "bash", "html"] as const;
 
 /**
  * Hai theme cùng lúc: Shiki nhả ra CSS variable `--shiki-light` /`--shiki-dark`
@@ -37,12 +37,15 @@ function getHighlighter(): Promise<Highlighter> {
   return highlighterPromise;
 }
 
-export type CodeLang = "ts" | "bash";
+export type CodeLang = "ts" | "bash" | "html";
 
 /** `codeLang` trong dữ liệu -> tên ngôn ngữ Shiki hiểu. */
 const LANG_MAP: Record<CodeLang, (typeof LANGS)[number]> = {
   ts: "typescript",
   bash: "bash",
+  // Chỉ dùng cho khối HTML minh hoạ đi kèm ví dụ lấy từ docs — docs hay bày
+  // "HTML thế này thì locator thế kia", thiếu nó thì ví dụ mất một nửa ý.
+  html: "html",
 };
 
 /**

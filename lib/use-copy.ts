@@ -23,7 +23,12 @@ export function useCopy(noiDung: string): {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Bấm chép rồi rời trang ngay thì timer vẫn còn treo — dọn khi unmount.
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
 
   const chep = useCallback(async () => {
     let ket: TrangThaiChep;

@@ -14,6 +14,7 @@
 import Link from "next/link";
 import { categoriesInOrder } from "../lib/entries.ts";
 import { countByCategory } from "../data/index.ts";
+import { CategoryIcon } from "./CategoryIcon.tsx";
 import type { Category } from "../lib/types.ts";
 
 export function Sidebar({ dangMo }: { dangMo?: Category }) {
@@ -24,7 +25,7 @@ export function Sidebar({ dangMo }: { dangMo?: Category }) {
       aria-label="Nhóm cú pháp"
       className="-mx-4 overflow-x-auto px-4 md:mx-0 md:overflow-visible md:px-0"
     >
-      <ul className="flex gap-1.5 md:flex-col md:gap-0.5">
+      <ul className="flex gap-2 md:flex-col md:gap-1">
         {categoriesInOrder().map((c) => {
           const mo = c.slug === dangMo;
           return (
@@ -33,14 +34,27 @@ export function Sidebar({ dangMo }: { dangMo?: Category }) {
                 href={`/${c.slug}/`}
                 aria-current={mo ? "page" : undefined}
                 className={
-                  "flex items-center justify-between gap-3 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition-colors md:whitespace-normal " +
+                  "flex items-center gap-2.5 rounded-xl border px-2.5 py-2 text-sm whitespace-nowrap transition-colors md:whitespace-normal " +
                   (mo
-                    ? "bg-surface font-medium text-accent"
-                    : "text-muted hover:bg-surface hover:text-fg")
+                    ? "btn-accent font-semibold"
+                    : "text-muted hover:border-border hover:bg-surface-2 hover:text-fg border-transparent")
                 }
               >
-                <span>{c.name}</span>
-                <span className="text-xs tabular-nums opacity-60">{dem[c.slug] ?? 0}</span>
+                {/*
+                  Ô icon nhỏ: nhóm đang mở thì nền của nút đã là gradient cam rồi,
+                  nên ô icon phải trong suốt — chồng gradient tím lên gradient cam
+                  thì thành một vệt bùn.
+                */}
+                <span
+                  className={
+                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-lg " +
+                    (mo ? "bg-white/20" : "tile opacity-85")
+                  }
+                >
+                  <CategoryIcon slug={c.slug} className="h-3.5 w-3.5" />
+                </span>
+                <span className="flex-1">{c.name}</span>
+                <span className="text-xs tabular-nums opacity-70">{dem[c.slug] ?? 0}</span>
               </Link>
             </li>
           );
